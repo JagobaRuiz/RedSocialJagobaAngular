@@ -1,10 +1,24 @@
 # RedSocialJagobaAngular
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.4.
+Proyecto creado con [Angular CLI](https://github.com/angular/angular-cli) version 19.1.4.
 
-## Development server
+## Lenguajes usados:
+* TypeScript
 
-To start a local development server, run:
+## Herramientas usadas:
+* JSON Server para emular la BDD
+
+
+## Arrancar el proyecto
+
+Para arrancar el proyecto ejecutar:
+
+```bash
+json-server --watch bd.json --port 3000
+```
+Ésto arrancará la "BDD".
+
+Después arrancar el proyecto de forma normal:
 
 ```bash
 ng serve

@@ -1,0 +1,10 @@
+{
+  "usuarios": [
+    {"id": 1, "nombre": "Usuario de prueba"},
+    {"id": 2, "nombre": "Usuario de prueba2"},
+    {"id": 3, "nombre": "Usuario de prueba3"}
+  ],
+  "mensajes": [
+
+  ]
+}
