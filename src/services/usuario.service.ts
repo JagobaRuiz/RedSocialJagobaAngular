@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-// import { Usuario } from './usuario.model';
+import {Usuario} from '../models/usuario.model';
+// import { UsuarioModel } from './usuario.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,12 +13,17 @@ export class UsuarioService {
 
   constructor(private http: HttpClient) { }
 
-  getUsuarios(): Observable<any[]> {
+  getUsuarios(): Observable<Usuario[]> {
     //console.log(this.http.get<any[]>(this.apiUrl));
-    return this.http.get<any[]>(this.apiUrl);
+    return this.http.get<Usuario[]>(this.apiUrl);
   }
 
-  // addUsuario(usuario: Usuario): Observable<Usuario> {
-  //   return this.http.post<Usuario>(this.apiUrl, usuario);
+  getUsuarioPorId(id: number): Observable<Usuario[]> {
+    //console.log(this.http.get<any[]>(this.apiUrl));
+    return this.http.get<Usuario[]>(this.apiUrl + "/" + id);
+  }
+
+  // addUsuario(usuario: UsuarioModel): Observable<UsuarioModel> {
+  //   return this.http.post<UsuarioModel>(this.apiUrl, usuario);
   // }
 }

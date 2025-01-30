@@ -4,21 +4,24 @@ Proyecto creado con [Angular CLI](https://github.com/angular/angular-cli) versio
 
 ## Lenguajes usados:
 * TypeScript
+* JavaScript
 
-## Herramientas usadas:
-* JSON Server para emular la BDD
+## Herramientas y frameworks usados:
+* Express
+* NodeJS
+* Sqlite3
 
 
 ## Arrancar el proyecto
 
-Para arrancar el proyecto ejecutar:
+Para arrancar el proyecto ejecutar en la carpeta backend:
 
 ```bash
-json-server --watch bd.json --port 3000
+node .\server.js
 ```
-Ésto arrancará la "BDD".
+Ésto arrancará el backend para conectar con la base de datos.
 
-Después arrancar el proyecto de forma normal:
+Después arrancar el proyecto de forma normal, en la carpeta raíz del proyecto:
 
 ```bash
 ng serve
