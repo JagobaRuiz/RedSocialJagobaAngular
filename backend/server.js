@@ -70,9 +70,11 @@ app.post('/usuarios', (req, res) => {
   const sql = 'INSERT INTO Usuarios (nombre, username, email, password) VALUES (?, ?, ?, ?)';
   const params = [nombre, username, email, password];
 
+  console.log(req.body);
+
   db.run(sql, params, function(err) {
     if (err) {
-      res.status(400).json({"error": err.message});
+      res.status(400).json({"errorMessage": err.message, "error": err});
       return;
     }
     res.json({
