@@ -26,4 +26,8 @@ export class UsuarioService {
   addUsuario(nombre: string, username: string, email: string, password: string): Observable<Usuario> {
     return this.http.post<Usuario>(this.apiUrl, {nombre, username, email, password});
   }
+
+  loginConUsername(username: string, password: string): Observable<Usuario> {
+    return this.http.post<Usuario>(this.apiUrl + "/login_username", {username, password});
+  }
 }

@@ -67,23 +67,26 @@ export class RegistroComponent implements OnInit {
       this.password = this.formularioRegistro.get("password")?.value;
       this.email = this.formularioRegistro.get("email")?.value;
 
-      this.usuarioService.addUsuario(this.nombre, this.username, this.email, this.password).subscribe(
-        response => {
-          console.log("usuario Registrado: ", response);
+      this.usuarioService.addUsuario(this.nombre, this.username, this.email, this.password).subscribe({
+        next: (response) => {
+          console.log('Usuario registrado: ', response);
         },
-        error => {
+        error: (error) => {
           if (error.error.error.errno === 19){
-            if (error.error.errorMessage.includes("email")) {
-              this.error = "Email repetido o no disponible";
-            } else if (error.error.errorMessage.includes("username")) {
-              this.error = "Nombre de usuario repetido o no disponible";
-            }
-
-          }
-          console.log(error.error.errorMessage);
-          console.log("Mensaje error: ", this.error);
-        });
-      }
+                  if (error.error.errorMessage.includes("email")) {
+                    this.error = "Email repetido o no disponible";
+                  } else if (error.error.errorMessage.includes("username")) {
+                    this.error = "Nombre de usuario repetido o no disponible";
+                  }
+                }
+                console.log(error.error.errorMessage);
+                console.log("Mensaje error: ", this.error);
+        },
+        complete: () => {
+          console.log('Request complete');
+        }
+      });
+    }
 
       console.log("Imagen: ", this.formularioRegistro.get("imagen"));
     }

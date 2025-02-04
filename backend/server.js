@@ -90,6 +90,34 @@ app.post('/usuarios', (req, res) => {
   });
 });
 
+// Ruta para login por username
+app.post('/usuarios/login_username', (req, res) => {
+
+  console.log(req.body);
+  const { username, password } = req.body;
+  const sql = 'SELECT * FROM Usuarios WHERE username = ? AND password = ?';
+  const params = [username, password];
+
+  db.get(sql, params, function(err, row) {
+    if (row) {
+      res.json({
+        "message": "success",
+        "data": {
+          id: row.id,
+          nombre: row.nombre,
+          username: row.username,
+          email: row.email,
+          password: "Contraseña no visible por seguridad"
+        }
+      });
+    } else if (err) {
+      res.status(404).json({"error": err});
+    } else {
+      res.status(400).json({"error": "Usuario no encontrado"});
+    }
+  });
+});
+
 // Rutas para Mensajes
 app.get('/mensajes', (req, res) => {
   const sql = 'SELECT * FROM Mensajes';
