@@ -2,9 +2,11 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = 3000;
+const secretKey = 'JagobaX1234';
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -91,29 +93,32 @@ app.post('/usuarios', (req, res) => {
 });
 
 // Ruta para login por username
-app.post('/usuarios/login_username', (req, res) => {
-
-  console.log(req.body);
+app.post('/login_username', (req, res) => {
   const { username, password } = req.body;
   const sql = 'SELECT * FROM Usuarios WHERE username = ? AND password = ?';
   const params = [username, password];
 
-  db.get(sql, params, function(err, row) {
+  db.get(sql, params, (err, row) => {
+    if (err) {
+      return res.status(500).json({ "error": "Error al conectar a la base de datos" });
+    }
     if (row) {
+      const token = jwt.sign({ idUsuario: row.id, username: row.username }, secretKey, { expiresIn: '1h' });
       res.json({
-        "message": "success",
-        "data": {
-          id: row.id,
-          nombre: row.nombre,
-          username: row.username,
-          email: row.email,
-          password: "Contraseña no visible por seguridad"
-        }
+        message: 'Login exitoso',
+        token: token
       });
-    } else if (err) {
-      res.status(404).json({"error": err});
+      // Comparar la contraseña hashada
+      // bcrypt.compare(password, row.password, (err, result) => {
+      //   if (result) {
+      //     // Crear y firmar el token JWT
+      //
+      //   } else {
+      //     res.status(401).json({ error: 'Contraseña incorrecta' });
+      //   }
+      // });
     } else {
-      res.status(400).json({"error": "Usuario no encontrado"});
+      res.status(404).json({ error: 'Usuario o contraseña incorrectos' });
     }
   });
 });

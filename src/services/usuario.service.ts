@@ -18,9 +18,9 @@ export class UsuarioService {
     return this.http.get<Usuario[]>(this.apiUrl);
   }
 
-  getUsuarioPorId(id: number): Observable<Usuario[]> {
+  getUsuarioPorId(id: number): Observable<Usuario> {
     //console.log(this.http.get<any[]>(this.apiUrl));
-    return this.http.get<Usuario[]>(this.apiUrl + "/" + id);
+    return this.http.get<Usuario>(this.apiUrl + "/" + id);
   }
 
   addUsuario(nombre: string, username: string, email: string, password: string): Observable<Usuario> {

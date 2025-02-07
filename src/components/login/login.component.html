@@ -1,23 +1,24 @@
 <h1 class="h1">LOGIN</h1>
-
-<form [formGroup]="formularioLogin" (ngSubmit)="iniciarSesion()">
-
-  <div class="row mb-3">
-    <label for="usernameOrEmail" class="col-sm-2 col-form-label">Nombre de usuario o email:</label>
-    <div class="col-sm-10">
-      <input id="usernameOrEmail" formControlName="usernameOrEmail" class="form-control" placeholder="Usuario o email">
+<div class="contenedor">
+  <form [formGroup]="formularioLogin" (ngSubmit)="iniciarSesion()">
+    <div class="row mb-3">
+      <label for="usernameOrEmail" class="col-sm-2 col-form-label">Nombre de usuario o email:</label>
+      <div class="col-sm-10">
+        <input id="usernameOrEmail" formControlName="usernameOrEmail" class="form-control" placeholder="Usuario o email">
+      </div>
     </div>
-  </div>
 
-  <div class="row mb-3">
-    <label for="password" class="col-sm-2 col-form-label">Contraseña:</label>
-    <div class="col-sm-10">
-      <input id="password" type="password" formControlName="password" class="form-control">
+    <div class="row mb-3">
+      <label for="password" class="col-sm-2 col-form-label label-passwd">Contraseña:</label>
+      <div class="col-sm-10">
+        <input id="password" type="password" formControlName="password" class="form-control">
+      </div>
     </div>
-  </div>
 
-  <button class="btn btn-primary" type="submit" [disabled]="formularioLogin.invalid">Enviar</button>
-</form>
-<div *ngIf="error" class="alert alert-danger">
-  {{error}}
+    <button class="btn btn-primary" type="submit" [disabled]="formularioLogin.invalid">Iniciar sesión</button>
+  </form>
+  <div *ngIf="error" class="alert alert-danger">
+    {{error}}
+  </div>
 </div>
+

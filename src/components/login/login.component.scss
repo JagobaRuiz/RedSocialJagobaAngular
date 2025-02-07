@@ -1,0 +1,44 @@
+.form-control {
+  //width: 30%;
+  height: 150%;
+}
+
+h1{
+  text-align: center;
+  margin-left: -1em;
+}
+
+button{
+  border-radius: 9999px;
+  width: 20rem;
+  align-self: center; /* Centra el botón horizontalmente dentro del formulario */
+  margin-left: 3.5%;
+  margin-top: 2em;
+ // cursor: pointer;
+}
+
+.contenedor {
+  display: grid;
+  place-items: center;
+  // height: 100vh;          /* Ajusta la altura del contenedor */
+}
+
+form {
+  display: grid;
+}
+
+.label-passwd {
+  margin-left: 26%;
+  margin-top: 1em;
+}
+
+label {
+  margin-left: 20%;
+  width: 100%;
+  align-self: center;
+}
+
+.alert {
+  margin-top: 1em;
+  margin-left: -5em;
+}
