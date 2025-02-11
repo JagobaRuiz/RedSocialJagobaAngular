@@ -1,1 +1,37 @@
-<p>inicio works!</p>
+<div class="list-group">
+  <form *ngIf="authToken$" [formGroup]="formularioPublicarMensaje" (ngSubmit)="publicarMensaje()"
+        class="list-group-item list-group-item-action">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">{{username$ | async}}</h5>
+    </div>
+    <p class="mb-1">
+      <textarea id="texto" formControlName="texto" class="form-control"></textarea>
+    </p>
+    <small>
+      <button class="btn btn-primary">Enviar</button>
+    </small>
+  </form>
+  <div *ngFor="let mensaje of mensajes$ | async"
+       class="list-group-item list-group-item-action">
+    <div class="row">
+      <div class="col-auto">
+        <img class="rounded-circle" ngSrc="https://picsum.photos/50/50" width="50" height="50">
+      </div>
+      <div class="col">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{'@' + mensaje.usuario.username}}</h5>
+          <small>{{obtenerTiempoVidaMensaje(mensaje.fecha)}}</small>
+        </div>
+        <p class="mb-1"> {{mensaje.texto}}</p>
+<!--        <small>-->
+<!--          <a (click)="gestionarLike()"><i-->
+<!--            class="bi" [ngClass]="mensaje.lesGusta?.includes()"-->
+<!--            classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"-->
+<!--          ></i></a>-->
+
+<!--          <span text="*{lesGusta.size()}">123</span>-->
+<!--        </small>-->
+      </div>
+    </div>
+  </div>
+</div>

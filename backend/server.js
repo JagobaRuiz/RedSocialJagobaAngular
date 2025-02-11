@@ -123,49 +123,93 @@ app.post('/login_username', (req, res) => {
   });
 });
 
-// Rutas para Mensajes
-app.get('/mensajes', (req, res) => {
-  const sql = 'SELECT * FROM Mensajes';
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      res.status(400).json({"error": err.message});
-      return;
-    }
-    res.json({
-      "message": "success",
-      "data": rows.map(row => ({
-        id: row.id,
-        texto: row.texto,
-        id_usuario: row.id_usuario,
-        fecha: row.fecha,
-        id_respuesta: row.id_respuesta
-      }))
-    });
-  });
-});
+//Obtener mensajes con toda la información
 
-app.get('/mensajes/:id', (req, res) => {
-  const sql = 'SELECT * FROM Mensajes WHERE id = ?';
-  const params = [req.params.id];
-  db.get(sql, params, (err, row) => {
+app.get('/mensajes', (req, res) => {
+  const mensajesQuery = `
+    SELECT
+      m.id, m.texto, m.fecha, m.id_respuesta,
+      u.id AS usuario_id, u.nombre AS usuario_nombre, u.username AS usuario_username, u.email AS usuario_email
+    FROM Mensajes m
+    JOIN Usuarios u ON m.id_usuario = u.id
+  `;
+  db.all(mensajesQuery, [], (err, mensajes) => {
     if (err) {
-      res.status(400).json({"error": err.message});
-      return;
+      return res.status(500).json({ error: err.message });
     }
-    if (row) {
-      res.json({
-        "message": "success",
-        "data": {
-          id: row.id,
-          texto: row.texto,
-          id_usuario: row.id_usuario,
-          fecha: row.fecha,
-          id_respuesta: row.id_respuesta
+
+    const mensajesConRespuestas = mensajes.map(mensaje => ({
+      id: mensaje.id,
+      texto: mensaje.texto,
+      fecha: mensaje.fecha,
+      usuario: {
+        id: mensaje.usuario_id,
+        nombre: mensaje.usuario_nombre,
+        username: mensaje.usuario_username,
+        email: mensaje.usuario_email
+      },
+      respuestas: [],
+      lesGusta: []
+    }));
+
+    const respuestasQuery = `
+      SELECT
+        r.id, r.texto, r.fecha, r.id_respuesta,
+        ur.id AS usuario_id, ur.nombre AS usuario_nombre, ur.username AS usuario_username, ur.email AS usuario_email,
+        mr.id AS respuesta_id
+      FROM Mensajes r
+      JOIN Usuarios ur ON r.id_usuario = ur.id
+      LEFT JOIN Mensajes mr ON r.id_respuesta = mr.id
+    `;
+    db.all(respuestasQuery, [], (err, respuestas) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      respuestas.forEach(respuesta => {
+        const mensajeIndex = mensajesConRespuestas.findIndex(m => m.id === respuesta.id_respuesta);
+        if (mensajeIndex > -1) {
+          mensajesConRespuestas[mensajeIndex].respuestas.push({
+            id: respuesta.id,
+            texto: respuesta.texto,
+            fecha: respuesta.fecha,
+            usuario: {
+              id: respuesta.usuario_id,
+              nombre: respuesta.usuario_nombre,
+              username: respuesta.usuario_username,
+              email: respuesta.usuario_email
+            },
+            respuestas: []
+          });
         }
       });
-    } else {
-      res.status(404).json({"error": "Message not found"});
-    }
+
+      const likesQuery = `
+        SELECT
+          l.id_mensaje, u.id AS usuario_id, u.nombre AS usuario_nombre, u.username AS usuario_username, u.email AS usuario_email
+        FROM Likes l
+        JOIN Usuarios u ON l.id_usuario = u.id
+      `;
+      db.all(likesQuery, [], (err, likes) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+
+        likes.forEach(like => {
+          const mensajeIndex = mensajesConRespuestas.findIndex(m => m.id === like.id_mensaje);
+          if (mensajeIndex > -1) {
+            mensajesConRespuestas[mensajeIndex].lesGusta.push({
+              id: like.usuario_id,
+              nombre: like.usuario_nombre,
+              username: like.usuario_username,
+              email: like.usuario_email
+            });
+          }
+        });
+
+        res.json({ data: mensajesConRespuestas });
+      });
+    });
   });
 });
 
@@ -206,6 +250,51 @@ app.get('/mensajes/:id/respuestas', (req, res) => {
   });
 });
 
+// Ruta para crear un Mensaje
+app.post('/mensajes', (req, res) => {
+  const { texto, idUsuario, idRespuesta } = req.body;
+  const insertSql = `INSERT INTO Mensajes (texto, id_usuario, fecha, id_respuesta) VALUES (?, ?, CURRENT_TIMESTAMP, ?)`;
+  const insertParams = [texto, idUsuario, idRespuesta || null];
+
+  db.run(insertSql, insertParams, function (err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    const mensajeId = this.lastID;
+    const selectSql = `
+      SELECT
+        m.id, m.texto, m.fecha, m.id_respuesta,
+        u.id AS usuario_id, u.nombre AS usuario_nombre, u.username AS usuario_username, u.email AS usuario_email
+      FROM Mensajes m
+      JOIN Usuarios u ON m.id_usuario = u.id
+      WHERE m.id = ?
+    `;
+    const selectParams = [mensajeId];
+
+    db.get(selectSql, selectParams, (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      const mensajeCompleto = {
+        id: row.id,
+        texto: row.texto,
+        fecha: row.fecha,
+        usuario: {
+          id: row.usuario_id,
+          nombre: row.usuario_nombre,
+          username: row.usuario_username,
+          email: row.usuario_email
+        },
+        respuestas: [],
+        lesGusta: []
+      };
+
+      res.json(mensajeCompleto);
+    });
+  });
+});
 
 
 // Iniciar el servidor
