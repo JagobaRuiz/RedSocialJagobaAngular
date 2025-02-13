@@ -13,6 +13,8 @@ export class MensajeService {
   private apiUrl = 'http://localhost:3000/mensajes';
   private mensajesSubject = new BehaviorSubject<Mensaje[] | null>(null);
   mensajes$: Observable<Mensaje[] | null> = this.mensajesSubject.asObservable();
+  private respuestasSubject = new BehaviorSubject<Mensaje[] | null>(null);
+  respuestas$: Observable<Mensaje[] | null> = this.respuestasSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {
     this.cargarMensajes();
@@ -26,18 +28,33 @@ export class MensajeService {
       .subscribe();
   }
 
+  cargarRespuestas(idMensaje: number) {
+    this.http.get<{ data: Mensaje[] }>(this.apiUrl + '/' +idMensaje + '/respuestas')
+      .pipe(
+        tap(response => this.respuestasSubject.next(response.data))
+      )
+      .subscribe();
+  }
+
   obtenerMensajes() {
     return this.mensajes$;
   }
 
-  publicarMensaje(texto: string, idUsuario: number, idRespuesta?: number) {
-    //const fecha = Date.now();
-    return this.http.post<Mensaje>(this.apiUrl, {texto, idUsuario}).pipe(
+  obtenerRespuestas() {
+    return this.respuestas$;
+  }
+
+  publicarMensaje(texto: string, idUsuario: number, idRespuesta?: number): Observable<Mensaje> {
+    return this.http.post<Mensaje>(this.apiUrl, {texto, idUsuario, idRespuesta}).pipe(
       tap(response => {
         const mensajesActuales = this.mensajesSubject.value;
         this.mensajesSubject.next([...mensajesActuales!, response]);
+
+        const respuestasActuales = this.respuestasSubject.value;
+        this.mensajesSubject.next([...respuestasActuales!, response]);
+
+
       })
     );
-
   }
 }

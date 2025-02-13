@@ -214,41 +214,270 @@ app.get('/mensajes', (req, res) => {
 });
 
 // Ruta para obtener un mensaje y sus respuestas
-app.get('/mensajes/:id/respuestas', (req, res) => {
-  const mensajeId = req.params.id;
+
+// const obtenerRespuestas = (mensajeId, callback) => {
+//   const sql = `
+//     SELECT
+//       r.id AS respuesta_id,
+//       r.texto AS respuesta_texto,
+//       r.fecha AS respuesta_fecha,
+//       ur.id AS respuesta_usuario_id,
+//       ur.nombre AS respuesta_usuario_nombre,
+//       ur.username AS respuesta_usuario_username,
+//       ur.email AS respuesta_usuario_email,
+//       m.id AS mensaje_id,
+//       m.texto AS mensaje_texto,
+//       m.fecha AS mensaje_fecha,
+//       um.id AS mensaje_usuario_id,
+//       um.nombre AS mensaje_usuario_nombre,
+//       um.username AS mensaje_usuario_username,
+//       um.email AS mensaje_usuario_email,
+//       lr.id_usuario AS like_usuario_id,
+//       ul.nombre AS like_usuario_nombre,
+//       ul.username AS like_usuario_username,
+//       ul.email AS like_usuario_email
+//     FROM Mensajes r
+//     JOIN Usuarios ur ON r.id_usuario = ur.id
+//     LEFT JOIN Mensajes m ON r.id_respuesta = m.id
+//     LEFT JOIN Usuarios um ON m.id_usuario = um.id
+//     LEFT JOIN Likes lr ON lr.id_mensaje = r.id
+//     LEFT JOIN Usuarios ul ON lr.id_usuario = ul.id
+//     WHERE r.id_respuesta = ?;
+//   `;
+//   const params = [mensajeId];
+//
+//   db.all(sql, params, (err, rows) => {
+//     if (err) {
+//       return callback(err);
+//     }
+//
+//     const respuestas = rows.map(row => ({
+//       id: row.respuesta_id,
+//       texto: row.respuesta_texto,
+//       fecha: row.respuesta_fecha,
+//       usuario: {
+//         id: row.respuesta_usuario_id,
+//         nombre: row.respuesta_usuario_nombre,
+//         username: row.respuesta_usuario_username,
+//         email: row.respuesta_usuario_email
+//       },
+//       id_respuesta: row.mensaje_id,
+//       mensaje: row.mensaje_id ? {
+//         id: row.mensaje_id,
+//         texto: row.mensaje_texto,
+//         fecha: row.mensaje_fecha,
+//         usuario: {
+//           id: row.mensaje_usuario_id,
+//           nombre: row.mensaje_usuario_nombre,
+//           username: row.mensaje_usuario_username,
+//           email: row.mensaje_usuario_email
+//         },
+//         respuestas: [],
+//         lesGusta: []
+//       } : null,
+//       respuestas: [],
+//       lesGusta: []
+//     }));
+//
+//     // Obtener respuestas de cada respuesta de manera recursiva
+//     let count = 0;
+//     if (respuestas.length === 0) {
+//       return callback(null, respuestas);
+//     }
+//
+//     respuestas.forEach((respuesta, index) => {
+//       obtenerRespuestas(respuesta.id, (err, nestedRespuestas) => {
+//         if (err) {
+//           return callback(err);
+//         }
+//
+//         respuestas[index].respuestas = nestedRespuestas;
+//
+//         if (++count === respuestas.length) {
+//           callback(null, respuestas);
+//         }
+//       });
+//     });
+//   });
+// };
+
+const obtenerRespuestas = (mensajeId, callback) => {
   const sql = `
     SELECT
-        m1.id AS mensaje_id,
-        m1.texto AS mensaje_texto,
-        m1.fecha AS mensaje_fecha,
-        u1.nombre AS usuario_nombre,
-        r.id AS respuesta_id,
-        r.texto AS respuesta_texto,
-        r.fecha AS respuesta_fecha,
-        u2.nombre AS respuesta_usuario_nombre
-    FROM
-        Mensajes m1
-    LEFT JOIN
-        Mensajes r ON r.id_respuesta = m1.id
-    LEFT JOIN
-        Usuarios u1 ON m1.id_usuario = u1.id
-    LEFT JOIN
-        Usuarios u2 ON r.id_usuario = u2.id
-    WHERE
-        m1.id = ?
+      r.id AS respuesta_id,
+      r.texto AS respuesta_texto,
+      r.fecha AS respuesta_fecha,
+      ur.id AS respuesta_usuario_id,
+      ur.nombre AS respuesta_usuario_nombre,
+      ur.username AS respuesta_usuario_username,
+      ur.email AS respuesta_usuario_email,
+      m.id AS mensaje_id,
+      m.texto AS mensaje_texto,
+      m.fecha AS mensaje_fecha,
+      um.id AS mensaje_usuario_id,
+      um.nombre AS mensaje_usuario_nombre,
+      um.username AS mensaje_usuario_username,
+      um.email AS mensaje_usuario_email,
+      lr.id_usuario AS like_respuesta_usuario_id,
+      ulr.nombre AS like_respuesta_usuario_nombre,
+      ulr.username AS like_respuesta_usuario_username,
+      ulr.email AS like_respuesta_usuario_email,
+      lm.id_usuario AS like_mensaje_usuario_id,
+      ulm.nombre AS like_mensaje_usuario_nombre,
+      ulm.username AS like_mensaje_usuario_username,
+      ulm.email AS like_mensaje_usuario_email
+    FROM Mensajes r
+    JOIN Usuarios ur ON r.id_usuario = ur.id
+    LEFT JOIN Mensajes m ON r.id_respuesta = m.id
+    LEFT JOIN Usuarios um ON m.id_usuario = um.id
+    LEFT JOIN Likes lr ON lr.id_mensaje = r.id
+    LEFT JOIN Usuarios ulr ON lr.id_usuario = ulr.id
+    LEFT JOIN Likes lm ON lm.id_mensaje = m.id
+    LEFT JOIN Usuarios ulm ON lm.id_usuario = ulm.id
+    WHERE r.id_respuesta = ?;
   `;
   const params = [mensajeId];
+
   db.all(sql, params, (err, rows) => {
+    if (err) {
+      return callback(err);
+    }
+
+    const respuestaMap = new Map();
+    const mensajeLikesMap = new Map();
+
+    rows.forEach(row => {
+      if (!respuestaMap.has(row.respuesta_id)) {
+        respuestaMap.set(row.respuesta_id, {
+          id: row.respuesta_id,
+          texto: row.respuesta_texto,
+          fecha: row.respuesta_fecha,
+          usuario: {
+            id: row.respuesta_usuario_id,
+            nombre: row.respuesta_usuario_nombre,
+            username: row.respuesta_usuario_username,
+            email: row.respuesta_usuario_email
+          },
+          respuestaDe: row.mensaje_id ? {
+            id: row.mensaje_id,
+            texto: row.mensaje_texto,
+            fecha: row.mensaje_fecha,
+            usuario: {
+              id: row.mensaje_usuario_id,
+              nombre: row.mensaje_usuario_nombre,
+              username: row.mensaje_usuario_username,
+              email: row.mensaje_usuario_email
+            },
+            respuestas: [],
+            lesGusta: []
+          } : null,
+          respuestas: [],
+          lesGusta: []
+        });
+      }
+
+      if (row.like_respuesta_usuario_id) {
+        respuestaMap.get(row.respuesta_id).lesGusta.push({
+          id: row.like_respuesta_usuario_id,
+          nombre: row.like_respuesta_usuario_nombre,
+          username: row.like_respuesta_usuario_username,
+          email: row.like_respuesta_usuario_email
+        });
+      }
+
+      if (row.mensaje_id && row.like_mensaje_usuario_id) {
+        if (!mensajeLikesMap.has(row.mensaje_id)) {
+          mensajeLikesMap.set(row.mensaje_id, []);
+        }
+        mensajeLikesMap.get(row.mensaje_id).push({
+          id: row.like_mensaje_usuario_id,
+          nombre: row.like_mensaje_usuario_nombre,
+          username: row.like_mensaje_usuario_username,
+          email: row.like_mensaje_usuario_email
+        });
+      }
+    });
+
+    const respuestas = Array.from(respuestaMap.values());
+
+    respuestas.forEach(respuesta => {
+      if (respuesta.respuestaDe && mensajeLikesMap.has(respuesta.respuestaDe.id)) {
+        respuesta.respuestaDe.lesGusta = mensajeLikesMap.get(respuesta.respuestaDe.id);
+      }
+    });
+
+    let count = 0;
+    if (respuestas.length === 0) {
+      return callback(null, respuestas);
+    }
+
+    respuestas.forEach((respuesta, index) => {
+      obtenerRespuestas(respuesta.id, (err, nestedRespuestas) => {
+        if (err) {
+          return callback(err);
+        }
+
+        respuestas[index].respuestas = nestedRespuestas;
+
+        if (++count === respuestas.length) {
+          callback(null, respuestas);
+        }
+      });
+    });
+  });
+};
+
+app.get('/mensajes/:id/respuestas', (req, res) => {
+  const mensajeId = req.params.id;
+  obtenerRespuestas(mensajeId, (err, respuestas) => {
     if (err) {
       res.status(400).json({"error": err.message});
       return;
     }
     res.json({
       "message": "success",
-      "data": rows
+      "data": respuestas
     });
   });
 });
+
+
+
+// app.get('/mensajes/:id/respuestas', (req, res) => {
+//   const mensajeId = req.params.id;
+//   const sql = `
+//     SELECT
+//         m1.id AS mensaje_id,
+//         m1.texto AS mensaje_texto,
+//         m1.fecha AS mensaje_fecha,
+//         u1.nombre AS usuario_nombre,
+//         r.id AS respuesta_id,
+//         r.texto AS respuesta_texto,
+//         r.fecha AS respuesta_fecha,
+//         u2.nombre AS respuesta_usuario_nombre
+//     FROM
+//         Mensajes m1
+//     LEFT JOIN
+//         Mensajes r ON r.id_respuesta = m1.id
+//     LEFT JOIN
+//         Usuarios u1 ON m1.id_usuario = u1.id
+//     LEFT JOIN
+//         Usuarios u2 ON r.id_usuario = u2.id
+//     WHERE
+//         m1.id = ?
+//   `;
+//   const params = [mensajeId];
+//   db.all(sql, params, (err, rows) => {
+//     if (err) {
+//       res.status(400).json({"error": err.message});
+//       return;
+//     }
+//     res.json({
+//       "message": "success",
+//       "data": rows
+//     });
+//   });
+// });
 
 // Ruta para crear un Mensaje
 app.post('/mensajes', (req, res) => {

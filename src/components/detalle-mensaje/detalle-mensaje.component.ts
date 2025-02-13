@@ -1,75 +1,75 @@
 import { Component } from '@angular/core';
-import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Observable} from 'rxjs';
 import {Router} from '@angular/router';
-import {AuthService} from '../../services/auth.service';
+import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {Mensaje} from '../../models/mensaje.model';
+import {AuthService} from '../../services/auth.service';
 import {MensajeService} from '../../services/mensaje.service';
+import {AsyncPipe, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
+import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 
 @Component({
-  selector: 'app-inicio',
+  selector: 'app-detalle-mensaje',
   imports: [
+    NgOptimizedImage,
+    AsyncPipe,
+    NgIf,
     FormsModule,
     ReactiveFormsModule,
-    AsyncPipe,
-    NgForOf,
-    NgOptimizedImage,
-    NgClass,
-    NgIf
+    NgForOf
   ],
-  templateUrl: './inicio.component.html',
-  styleUrl: './inicio.component.scss'
+  templateUrl: './detalle-mensaje.component.html',
+  styleUrl: './detalle-mensaje.component.scss'
 })
-export class InicioComponent {
+export class DetalleMensajeComponent {
   authToken$: Observable<string | null>;
   username$: Observable<string | null>;
   idUsuario$: Observable<number | null>;
-  mensajes$: Observable<Mensaje[] | null>;
-  formularioPublicarMensaje: FormGroup;
+  mensaje: Mensaje;
+  formularioResponder: FormGroup;
+  respuestas$: Observable<Mensaje[] | null>;
 
   constructor(private router: Router, private authService: AuthService, private mensajeService: MensajeService) {
+    const navigation = this.router.getCurrentNavigation();
+    this.mensaje = navigation?.extras?.state?.['data'];
+    console.log("mensaje", this.mensaje);
+    this.mensajeService.cargarRespuestas(this.mensaje.id);
+    this.respuestas$ = this.mensajeService.obtenerRespuestas();
     this.authToken$ = this.authService.authToken$;
-    this.mensajes$ = this.mensajeService.obtenerMensajes();
+    //this.mensajeConRespuestas$ = this.mensajeService.obtenerMensajes();
     this.username$ = this.authToken$.pipe(
       map(token => token ? this.authService.obtenerNombreUsuarioDeToken(token) : null)
     );
     this.idUsuario$ = this.authToken$.pipe(
       map(token => token ? this.authService.obtenerIdUsuarioDeToken(token) : null)
     );
-
-    this.formularioPublicarMensaje = new FormGroup({
+    this.formularioResponder = new FormGroup({
       texto: new FormControl('', [Validators.required])
     });
+    // this.respuestas$ = this.mensajeService.respuestas$;
   }
 
-  publicarMensaje() {
+  responder() {
     let idUsuario;
     this.idUsuario$.subscribe(id => {
       idUsuario = id;
     });
 
     if (idUsuario) {
-      this.mensajeService.publicarMensaje(this.formularioPublicarMensaje.get('texto')?.value, idUsuario).subscribe({
+      this.mensajeService.publicarMensaje(this.formularioResponder.get('texto')?.value, idUsuario, this.mensaje.id).subscribe({
         next: (mensaje: Mensaje) => {
           console.log("Mensaje publicado: ", mensaje);
+          this.mensajeService.cargarRespuestas(this.mensaje.id);
         },
         error: (error) => {
           console.log("Error: ", error);
         }
       });
     }
-
   }
 
-  obtenerTiempoVidaMensaje(fechaPublicacion: Date) {
-    console.log('fechaPublicacion: ', fechaPublicacion);
-    return "dfdfhghgh"
-  }
-
-  gestionarLike() {
-    console.log('gestionarLike');
+  obtenerTiempoVida(fechaMensaje: Date) {
+    return 'tiempo';
   }
 
   irDetalle(mensaje: Mensaje) {
@@ -77,3 +77,4 @@ export class InicioComponent {
   }
 
 }
+

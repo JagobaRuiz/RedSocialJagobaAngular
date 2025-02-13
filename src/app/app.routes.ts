@@ -2,12 +2,13 @@ import { Routes } from '@angular/router';
 import {InicioComponent} from '../components/inicio/inicio.component';
 import {LoginComponent} from '../components/login/login.component';
 import {RegistroComponent} from '../components/registro/registro.component';
+import {DetalleMensajeComponent} from '../components/detalle-mensaje/detalle-mensaje.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/inicio', pathMatch: 'full' },
   { path: 'inicio', component: InicioComponent },
   { path: 'login', component: LoginComponent },
   { path: 'registro', component: RegistroComponent },
- // { path: 'mensajes', component: MensajeListComponent },
+ { path: 'mensaje/detalle', component: DetalleMensajeComponent },
  // { path: 'mensajes', component: MensajeListComponent },
 ];
