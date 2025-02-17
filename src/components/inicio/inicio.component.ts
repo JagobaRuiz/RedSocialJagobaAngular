@@ -7,6 +7,7 @@ import {map} from 'rxjs/operators';
 import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {Mensaje} from '../../models/mensaje.model';
 import {MensajeService} from '../../services/mensaje.service';
+import {Usuario} from '../../models/usuario.model';
 
 @Component({
   selector: 'app-inicio',
@@ -64,12 +65,50 @@ export class InicioComponent {
   }
 
   obtenerTiempoVidaMensaje(fechaPublicacion: Date) {
-    console.log('fechaPublicacion: ', fechaPublicacion);
+    // console.log('fechaPublicacion: ', fechaPublicacion);
     return "dfdfhghgh"
   }
 
-  gestionarLike() {
-    console.log('gestionarLike');
+  gestionarLike(mensaje: Mensaje) {
+    let idUsuario: number | null = null;
+    let leHaDadoLike: boolean = false;
+    this.idUsuario$.subscribe(id => {
+      idUsuario = id;
+    });
+    if (idUsuario) {
+      mensaje.lesGusta?.forEach((like: Usuario) => {
+        if (like.id === idUsuario) {
+          leHaDadoLike = true;
+        }
+      });
+
+      if (!leHaDadoLike) {
+        this.mensajeService.darLike(idUsuario, mensaje.id).subscribe({
+          next: (like) => {
+            console.log("Like: ", like);
+          }
+        })
+      } else {
+        this.mensajeService.quitarLike(idUsuario, mensaje.id).subscribe({
+          next: (like) => {
+            console.log("Like borrado: ", like);
+          }
+        })
+      }
+
+    }
+  }
+
+  leHaDadoLikeElUsuarioLogueado(likesDelMensaje: Usuario[] | null) {
+    let leHaDadoLike = false;
+    this.idUsuario$.subscribe(idUsuario => {
+      likesDelMensaje?.forEach((like: Usuario) => {
+        if (like.id === idUsuario) {
+          leHaDadoLike = true;
+        }
+      })
+    });
+    return leHaDadoLike;
   }
 
   irDetalle(mensaje: Mensaje) {

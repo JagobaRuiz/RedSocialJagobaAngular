@@ -5,6 +5,7 @@ import {HttpClient} from '@angular/common/http';
 import {Router} from '@angular/router';
 import {tap} from 'rxjs/operators';
 import {Usuario} from '../models/usuario.model';
+import {Like} from '../models/like.model';
 
 @Injectable({
   providedIn: 'root'
@@ -59,9 +60,33 @@ export class MensajeService {
           respuestasActuales.unshift(response);
         }
         this.mensajesSubject.next(respuestasActuales);
-
-
       })
     );
+  }
+
+  darLike(idUsuario: number, idMensaje: number, vieneDeRespuestas?: boolean): Observable<Like> {
+    return this.http.post<Like>(this.apiUrl + '/darLike', {idUsuario, idMensaje}).pipe(
+      tap(response => {
+        if (vieneDeRespuestas) {
+          this.cargarRespuestas(idMensaje);
+        } else {
+          this.cargarMensajes();
+        }
+      })
+    )
+
+  }
+
+  quitarLike(idUsuario: number, idMensaje: number, vieneDeRespuestas?: boolean): Observable<Like> {
+    return this.http.post<Like>(this.apiUrl + '/quitarLike', {idUsuario, idMensaje}).pipe(
+      tap(response => {
+        if (vieneDeRespuestas) {
+          this.cargarRespuestas(idMensaje);
+        } else {
+          this.cargarMensajes();
+        }
+      })
+    )
+
   }
 }

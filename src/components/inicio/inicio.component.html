@@ -27,12 +27,10 @@
         <p class="mb-1"> {{mensaje.texto}}</p>
         <small>
           <a (click)="irDetalle(mensaje)"><i class="bi bi-chat"></i>{{" " + mensaje.respuestas?.length}}</a>
-<!--          <a (click)="gestionarLike()"><i-->
-<!--            class="bi" [ngClass]="mensaje.lesGusta?.includes()"-->
-<!--            classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"-->
-<!--          ></i></a>-->
-
-<!--          <span text="*{lesGusta.size()}">123</span>-->
+          <a (click)="gestionarLike(mensaje)">
+            <i class="bi" [ngClass]="leHaDadoLikeElUsuarioLogueado(mensaje.lesGusta!) ? 'bi-heart-fill' : 'bi-heart'"></i>
+            {{" "+ mensaje.lesGusta?.length}}
+          </a>
         </small>
       </div>
     </div>

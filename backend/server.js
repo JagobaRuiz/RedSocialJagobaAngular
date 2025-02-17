@@ -260,8 +260,6 @@ const obtenerMensajes = (mensajeId, callback) => {
   });
 };
 
-// Endpoint para obtener mensajes y sus respuestas
-
 // Función para obtener todos los mensajes y sus respuestas recursivamente
 const obtenerTodosMensajes = (callback) => {
   const sql = `
@@ -803,6 +801,51 @@ app.post('/mensajes', (req, res) => {
   });
 });
 
+//Endpoint para crear like
+app.post('/mensajes/darLike', (req, res) => {
+  const { idUsuario, idMensaje} = req.body;
+  const sql = 'INSERT INTO Likes (id_usuario, id_mensaje) VALUES (?, ?)';
+  const params = [idUsuario, idMensaje];
+
+  console.log(req.body);
+
+  db.run(sql, params, function(err) {
+    if (err) {
+      res.status(400).json({"errorMessage": err.message, "error": err});
+      return;
+    }
+    res.json({
+      "message": "Like añadido",
+      "data": {
+        idUsuario,
+        idMensaje
+      }
+    });
+  });
+});
+
+//Endpoint para quitar like
+app.post('/mensajes/quitarLike', (req, res) => {
+  const { idUsuario, idMensaje} = req.body;
+  const sql = 'DELETE FROM Likes WHERE id_usuario = ? AND id_mensaje = ?';
+  const params = [idUsuario, idMensaje];
+
+  console.log(req.body);
+
+  db.run(sql, params, function(err) {
+    if (err) {
+      res.status(400).json({"errorMessage": err.message, "error": err});
+      return;
+    }
+    res.json({
+      "message": "Like borrado",
+      "data": {
+        idUsuario,
+        idMensaje
+      }
+    });
+  });
+});
 
 // Iniciar el servidor
 app.listen(port, () => {
