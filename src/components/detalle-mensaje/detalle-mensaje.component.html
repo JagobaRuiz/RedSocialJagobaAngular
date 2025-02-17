@@ -1,6 +1,5 @@
 <div class="list-group">
-  <div
-       class="list-group-item list-group-item-action">
+  <div class="list-group-item list-group-item-action">
     <div class="row">
       <div class="col-auto">
         <img class="rounded-circle" ngSrc="https://picsum.photos/50/50"
@@ -9,53 +8,58 @@
       <div class="col">
         <div class="d-flex w-100 justify-content-between">
           <h5 class="mb-1">
-            <span>{{mensaje.usuario.nombre}}</span> <small class="text-body-secondary">{{' @'+ mensaje.usuario.username}}</small>
+            <span>{{ mensaje.usuario.nombre }}</span> <small
+            class="text-body-secondary">{{ ' @' + mensaje.usuario.username }}</small>
           </h5>
-<!--          <small th:text="*{tiempoVidaTexto}">48m</small>-->
+          <!--          <small th:text="*{tiempoVidaTexto}">48m</small>-->
         </div>
-        <p class="mb-1">{{mensaje.texto}}</p>
-<!--        <small> <a th:if="${usuarioLogueado != null}"-->
-<!--                   th:href="@{/megusta(id=*{id})}" href="index.html"><i-->
-<!--          class="bi"-->
-<!--          th:classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"></i></a>-->
-<!--          <i th:if="${usuarioLogueado == null}" class="bi"-->
-<!--             th:classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"></i>-->
-<!--          <span th:text="*{lesGusta.size()}">123</span> <a-->
-<!--            th:href="@{/responder(id=*{id})}"-->
-<!--            th:if="${usuarioLogueado != null}" href="index.html"><i-->
-<!--            class="fs-5 bi bi-reply"></i></a>-->
-<!--        </small>-->
+        <p class="mb-1">{{ mensaje.texto }}</p>
+        <!--        <small> <a th:if="${usuarioLogueado != null}"-->
+        <!--                   th:href="@{/megusta(id=*{id})}" href="index.html"><i-->
+        <!--          class="bi"-->
+        <!--          th:classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"></i></a>-->
+        <!--          <i th:if="${usuarioLogueado == null}" class="bi"-->
+        <!--             th:classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"></i>-->
+        <!--          <span th:text="*{lesGusta.size()}">123</span> <a-->
+        <!--            th:href="@{/responder(id=*{id})}"-->
+        <!--            th:if="${usuarioLogueado != null}" href="index.html"><i-->
+        <!--            class="fs-5 bi bi-reply"></i></a>-->
+        <!--        </small>-->
       </div>
     </div>
   </div>
 </div>
-<div *ngFor="let respuesta of (respuestas$ | async)" class="list-group-item list-group-item-action">
-  <div class="row">
-    <div class="col-auto">
-      <img class="rounded-circle" ngSrc="https://picsum.photos/50/50" width="50" height="50">
-    </div>
-    <div class="col">
-      <div class="d-flex w-100 justify-content-between">
-        <h5 class="mb-1">{{'@' + respuesta.usuario.username}}</h5>
-        <small>{{obtenerTiempoVida(respuesta.fecha)}}</small>
+<div class="list-group">
+  <div *ngFor="let respuesta of (respuestas$ | async)" class="list-group-item list-group-item-action respuesta">
+    <div class="row">
+      <div class="col-auto">
+        <img class="rounded-circle" ngSrc="https://picsum.photos/50/50" width="50" height="50">
       </div>
-      <p class="mb-1"> {{respuesta.texto}}</p>
-      <small>
-        <a (click)="irDetalle(respuesta)"><i class="bi bi-chat"></i>{{respuesta.respuestas?.length}}</a>
-        <!--          <a (click)="gestionarLike()"><i-->
-        <!--            class="bi" [ngClass]="mensaje.lesGusta?.includes()"-->
-        <!--            classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"-->
-        <!--          ></i></a>-->
+      <div class="col">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{ respuesta.usuario.nombre }} <small
+            class="text-body-secondary">{{ ' @' + respuesta.usuario.username }}</small></h5>
+          <small>{{ obtenerTiempoVida(respuesta.fecha) }}</small>
+        </div>
+        <p class="mb-1"> {{ respuesta.texto }}</p>
+        <small>
+          <a (click)="irDetalle(respuesta)"><i class="bi bi-chat"></i>{{ " " + respuesta.respuestas?.length }}</a>
+          <!--          <a (click)="gestionarLike()"><i-->
+          <!--            class="bi" [ngClass]="mensaje.lesGusta?.includes()"-->
+          <!--            classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"-->
+          <!--          ></i></a>-->
 
-        <!--          <span text="*{lesGusta.size()}">123</span>-->
-      </small>
+          <!--          <span text="*{lesGusta.size()}">123</span>-->
+        </small>
+      </div>
     </div>
   </div>
 </div>
 
-<form *ngIf="authToken$" [formGroup]="formularioResponder" (ngSubmit)="responder()" class="list-group-item list-group-item-action">
+<form *ngIf="authToken$ | async" [formGroup]="formularioResponder" (ngSubmit)="responder()"
+      class="list-group-item list-group-item-action">
   <div class="d-flex w-100 justify-content-between">
-    <h5 class="mb-1">{{'@'+ (username$ |async)}}</h5>
+    <h5 class="mb-1">{{ '@' + (username$ |async) }}</h5>
   </div>
   <p class="mb-1">
     <textarea id="texto" formControlName="texto" class="form-control"></textarea>

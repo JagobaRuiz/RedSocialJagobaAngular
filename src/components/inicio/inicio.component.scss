@@ -1,5 +1,6 @@
 a {
   cursor: pointer;
+  padding-right: 0.5em;
 }
 
 textarea {
@@ -23,4 +24,9 @@ h1{
 .list-group-item {
   width: 75%;
   margin: auto;
+}
+
+.respuestaDe {
+  color: #5287ef;
+  cursor: pointer;
 }

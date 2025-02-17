@@ -1,7 +1,7 @@
 <h1 class="h1">Lista de mensajes recientes</h1>
 
 <div class="list-group">
-  <form *ngIf="authToken$" [formGroup]="formularioPublicarMensaje" (ngSubmit)="publicarMensaje()"
+  <form *ngIf="authToken$ | async" [formGroup]="formularioPublicarMensaje" (ngSubmit)="publicarMensaje()"
         class="list-group-item list-group-item-action">
     <div class="d-flex w-100 justify-content-between">
       <h5 class="mb-1">{{'@'+ (username$ | async)}}</h5>
@@ -20,12 +20,13 @@
       </div>
       <div class="col">
         <div class="d-flex w-100 justify-content-between">
-          <h5 class="mb-1">{{'@' + mensaje.usuario.username}}</h5>
+          <h5 class="mb-1">{{mensaje.usuario.nombre}} <small class="text-body-secondary">{{' @'+ mensaje.usuario.username}}</small></h5>
+          <p *ngIf="mensaje.respuestaDe" class="respuestaDe" (click)="irDetalle(mensaje.respuestaDe)"><small>En respuesta a un mensaje de {{mensaje.respuestaDe.usuario.username}}</small></p>
           <small>{{obtenerTiempoVidaMensaje(mensaje.fecha)}}</small>
         </div>
         <p class="mb-1"> {{mensaje.texto}}</p>
         <small>
-          <a (click)="irDetalle(mensaje)"><i class="bi bi-chat"></i>{{mensaje.respuestas?.length}}</a>
+          <a (click)="irDetalle(mensaje)"><i class="bi bi-chat"></i>{{" " + mensaje.respuestas?.length}}</a>
 <!--          <a (click)="gestionarLike()"><i-->
 <!--            class="bi" [ngClass]="mensaje.lesGusta?.includes()"-->
 <!--            classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"-->

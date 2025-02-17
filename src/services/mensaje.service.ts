@@ -48,10 +48,17 @@ export class MensajeService {
     return this.http.post<Mensaje>(this.apiUrl, {texto, idUsuario, idRespuesta}).pipe(
       tap(response => {
         const mensajesActuales = this.mensajesSubject.value;
-        this.mensajesSubject.next([...mensajesActuales!, response]);
+        if (mensajesActuales) {
+          mensajesActuales.unshift(response)
+        }
+        this.mensajesSubject.next(mensajesActuales);
 
         const respuestasActuales = this.respuestasSubject.value;
-        this.mensajesSubject.next([...respuestasActuales!, response]);
+
+        if (respuestasActuales) {
+          respuestasActuales.unshift(response);
+        }
+        this.mensajesSubject.next(respuestasActuales);
 
 
       })
