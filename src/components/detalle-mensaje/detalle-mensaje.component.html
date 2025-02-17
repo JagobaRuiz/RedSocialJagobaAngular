@@ -11,20 +11,15 @@
             <span>{{ mensaje.usuario.nombre }}</span> <small
             class="text-body-secondary">{{ ' @' + mensaje.usuario.username }}</small>
           </h5>
-          <!--          <small th:text="*{tiempoVidaTexto}">48m</small>-->
+            <small>48m</small>
         </div>
         <p class="mb-1">{{ mensaje.texto }}</p>
-        <!--        <small> <a th:if="${usuarioLogueado != null}"-->
-        <!--                   th:href="@{/megusta(id=*{id})}" href="index.html"><i-->
-        <!--          class="bi"-->
-        <!--          th:classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"></i></a>-->
-        <!--          <i th:if="${usuarioLogueado == null}" class="bi"-->
-        <!--             th:classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"></i>-->
-        <!--          <span th:text="*{lesGusta.size()}">123</span> <a-->
-        <!--            th:href="@{/responder(id=*{id})}"-->
-        <!--            th:if="${usuarioLogueado != null}" href="index.html"><i-->
-        <!--            class="fs-5 bi bi-reply"></i></a>-->
-        <!--        </small>-->
+        <small>
+          <a><i class="bi bi-chat"></i>{{ " " + mensaje.respuestas?.length }}</a>
+          <a (click)="gestionarLike(mensaje)"><i
+            class="bi" [ngClass]="leHaDadoLikeElUsuarioLogueado(mensaje.lesGusta!) ? 'bi-heart-fill' : 'bi-heart'"
+          ></i>{{' '+ mensaje.lesGusta?.length}}</a>
+        </small>
       </div>
     </div>
   </div>
@@ -44,12 +39,9 @@
         <p class="mb-1"> {{ respuesta.texto }}</p>
         <small>
           <a (click)="irDetalle(respuesta)"><i class="bi bi-chat"></i>{{ " " + respuesta.respuestas?.length }}</a>
-          <!--          <a (click)="gestionarLike()"><i-->
-          <!--            class="bi" [ngClass]="mensaje.lesGusta?.includes()"-->
-          <!--            classappend="${mensaje.lesGusta.contains(usuarioLogueado)} ? 'bi-heart-fill' : 'bi-heart'"-->
-          <!--          ></i></a>-->
-
-          <!--          <span text="*{lesGusta.size()}">123</span>-->
+                    <a (click)="gestionarLike(respuesta)"><i
+                      class="bi" [ngClass]="leHaDadoLikeElUsuarioLogueado(respuesta.lesGusta!) ? 'bi-heart-fill' : 'bi-heart'"
+                    ></i>{{' '+ respuesta.lesGusta?.length}}</a>
         </small>
       </div>
     </div>

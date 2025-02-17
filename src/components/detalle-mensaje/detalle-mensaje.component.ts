@@ -5,8 +5,9 @@ import {map} from 'rxjs/operators';
 import {Mensaje} from '../../models/mensaje.model';
 import {AuthService} from '../../services/auth.service';
 import {MensajeService} from '../../services/mensaje.service';
-import {AsyncPipe, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
+import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {Usuario} from '../../models/usuario.model';
 
 @Component({
   selector: 'app-detalle-mensaje',
@@ -16,7 +17,8 @@ import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} fr
     NgIf,
     FormsModule,
     ReactiveFormsModule,
-    NgForOf
+    NgForOf,
+    NgClass
   ],
   templateUrl: './detalle-mensaje.component.html',
   styleUrl: './detalle-mensaje.component.scss'
@@ -74,6 +76,48 @@ export class DetalleMensajeComponent {
 
   irDetalle(mensaje: Mensaje) {
     this.router.navigate(['mensaje/detalle'], { state: { data: mensaje } });
+  }
+
+  gestionarLike(mensaje: Mensaje) {
+    let idUsuario: number | null = null;
+    let leHaDadoLike: boolean = false;
+    this.idUsuario$.subscribe(id => {
+      idUsuario = id;
+    });
+    if (idUsuario) {
+      mensaje.lesGusta?.forEach((like: Usuario) => {
+        if (like.id === idUsuario) {
+          leHaDadoLike = true;
+        }
+      });
+
+      if (!leHaDadoLike) {
+        this.mensajeService.darLike(idUsuario, mensaje.id).subscribe({
+          next: (like) => {
+            console.log("Like: ", like);
+          }
+        })
+      } else {
+        this.mensajeService.quitarLike(idUsuario, mensaje.id).subscribe({
+          next: (like) => {
+            console.log("Like borrado: ", like);
+          }
+        })
+      }
+
+    }
+  }
+
+  leHaDadoLikeElUsuarioLogueado(likesDelMensaje: Usuario[] | null) {
+    let leHaDadoLike = false;
+    this.idUsuario$.subscribe(idUsuario => {
+      likesDelMensaje?.forEach((like: Usuario) => {
+        if (like.id === idUsuario) {
+          leHaDadoLike = true;
+        }
+      })
+    });
+    return leHaDadoLike;
   }
 
 }
