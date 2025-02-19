@@ -51,12 +51,12 @@ export class RegistroComponent implements OnInit {
   */
 
   comprobarImagen(event: any): void {
-   /* if (event.target.files.length > 0) {
+   if (event.target.files.length > 0) {
       const file = event.target.files[0];
       this.formularioRegistro.patchValue({
         imagen: file
       });
-    }*/
+    }
   }
 
   registrar() {

@@ -51,14 +51,11 @@ app.get('/usuarios/:id', (req, res) => {
     }
     if (row) {
       res.json({
-        "message": "success",
-        "data": {
           id: row.id,
           nombre: row.nombre,
           username: row.username,
           email: row.email,
           password: row.password // Evita enviar la contraseña en respuestas JSON en producción
-        }
       });
     } else {
       res.status(404).json({"error": "User not found"});
@@ -92,6 +89,35 @@ app.post('/usuarios', (req, res) => {
     });
   });
 });
+
+app.post('/usuarios/actualizar', (req, res) => {
+  const usuario = req.body;
+  console.log(req.body);
+  const sql = 'UPDATE Usuarios SET nombre= ?, username = ?, email = ?, password = ? WHERE id = ?';
+  const params = [usuario.nombre, usuario.username, usuario.email, usuario.password, usuario.id];
+  let token = '';
+  console.log(req.body);
+
+  db.run(sql, params, function(err) {
+    if (err) {
+      res.status(400).json({"errorMessage": err.message, "error": err});
+      return;
+    } else {
+      token = jwt.sign({ idUsuario: usuario.id, username: usuario.username }, secretKey, { expiresIn: '1h' });
+    }
+    res.json({
+      "token": token,
+      "usuario": {
+        id: usuario.id,
+        nombre: usuario.nombre,
+        username: usuario.username,
+        email: usuario.email,
+        password: 'Contraseña no visible por seguridad' // Evita enviar la contraseña en respuestas JSON en producción
+      }
+    });
+  });
+});
+
 
 // Ruta para login por username
 app.post('/login_username', (req, res) => {

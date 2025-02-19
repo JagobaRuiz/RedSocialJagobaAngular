@@ -10,8 +10,8 @@ import { jwtDecode } from 'jwt-decode';
 })
 export class AuthService {
   private apiUrl = 'http://localhost:3000';
-  private authTokenSubject = new BehaviorSubject<string | null>(null);
-  authToken$: Observable<string | null> = this.authTokenSubject.asObservable();
+  private authTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
+  public authToken$: Observable<string | null> = this.authTokenSubject.asObservable();
   // Lo que hace es que cada vez que se le pase al authTokenSubject un valor con .next('valor') se actualiza el valor de
   //authToken$, que está a la escucha.
 
@@ -64,10 +64,17 @@ export class AuthService {
 
   desencriptarToken(token: string): any {
     try {
+      console.log("Token desencriptado ", jwtDecode(token));
       return jwtDecode(token);
     } catch (error: any) {
       console.error('Token no válido:', error.message);
       return null;
     }
+  }
+
+  actualizarToken(token: string): void {
+    console.log(token);
+    localStorage.setItem('authToken', token);
+    this.authTokenSubject.next(token);
   }
 }

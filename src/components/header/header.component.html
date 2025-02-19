@@ -12,7 +12,7 @@
         <li class="nav-item"><a class="nav-link" (click)="irInicio()">Principal</a></li>
       </ul>
       <ul class="navbar-nav mb-2 mb-sm-0">
-        <li *ngIf="authToken$ | async" class="nav-item"><a class="nav-link" href="#">{{username$ | async}}</a></li>
+        <li *ngIf="authToken$ | async" class="nav-item"><a class="nav-link" (click)="irPerfil()">{{username$ | async}}</a></li>
         <li *ngIf="!(authToken$ | async);" class="nav-item"><a class="nav-link" (click)="irLogin()">Iniciar sesión</a></li>
         <li *ngIf="!(authToken$ | async);" class="nav-item"><a class="nav-link" (click)="irRegistro()">Registrarse</a></li>
         <li *ngIf="authToken$ | async" class="nav-item"><a class="nav-link" (click)="cerrarSesion()">Cerrar sesión</a>
