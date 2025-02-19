@@ -3,6 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const moment = require('moment-timezone');
 
 const app = express();
 const port = 3000;
@@ -758,8 +759,9 @@ app.get('/mensajes/:id/respuestas', (req, res) => {
 // Ruta para crear un Mensaje
 app.post('/mensajes', (req, res) => {
   const { texto, idUsuario, idRespuesta } = req.body;
-  const insertSql = `INSERT INTO Mensajes (texto, id_usuario, fecha, id_respuesta) VALUES (?, ?, CURRENT_TIMESTAMP, ?)`;
-  const insertParams = [texto, idUsuario, idRespuesta || null];
+  const fecha = moment().tz('Europe/Madrid').format('YYYY-MM-DD HH:mm:ss');
+  const insertSql = `INSERT INTO Mensajes (texto, id_usuario, fecha, id_respuesta) VALUES (?, ?, ?, ?)`;
+  const insertParams = [texto, idUsuario, fecha, idRespuesta || null];
 
   db.run(insertSql, insertParams, function (err) {
     if (err) {

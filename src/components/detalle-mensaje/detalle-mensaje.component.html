@@ -11,7 +11,7 @@
             <span>{{ mensaje.usuario.nombre }}</span> <small
             class="text-body-secondary">{{ ' @' + mensaje.usuario.username }}</small>
           </h5>
-            <small>48m</small>
+            <small>{{ obtenerTiempoVida(mensaje.fecha) }}</small>
         </div>
         <p class="mb-1">{{ mensaje.texto }}</p>
         <small>

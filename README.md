@@ -6,10 +6,16 @@ Proyecto creado con [Angular CLI](https://github.com/angular/angular-cli) versio
 * TypeScript
 * JavaScript
 
-## Herramientas y frameworks usados:
+## Herramientas y  bibliotecas usados:
+
 * Express
 * NodeJS
 * Sqlite3
+* moment-timezone
+* date-fns
+* JWT-decode
+* Bootstrap
+* Bootstrap Icons
 
 
 ## Arrancar el proyecto
@@ -25,6 +31,12 @@ Después arrancar el proyecto de forma normal, en la carpeta raíz del proyecto:
 
 ```bash
 ng serve
+```
+Si en Windows da error al arrancar, hay que ejecutar el siguiente
+comando: 
+
+```bash
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.

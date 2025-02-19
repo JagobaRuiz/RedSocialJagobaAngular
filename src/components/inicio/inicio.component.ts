@@ -8,6 +8,7 @@ import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/comm
 import {Mensaje} from '../../models/mensaje.model';
 import {MensajeService} from '../../services/mensaje.service';
 import {Usuario} from '../../models/usuario.model';
+import {format} from 'date-fns';
 
 @Component({
   selector: 'app-inicio',
@@ -41,7 +42,7 @@ export class InicioComponent {
     );
 
     this.formularioPublicarMensaje = new FormGroup({
-      texto: new FormControl('', [Validators.required])
+      texto: new FormControl(null, [Validators.required])
     });
   }
 
@@ -54,7 +55,8 @@ export class InicioComponent {
     if (idUsuario) {
       this.mensajeService.publicarMensaje(this.formularioPublicarMensaje.get('texto')?.value, idUsuario).subscribe({
         next: (mensaje: Mensaje) => {
-          console.log("Mensaje publicado: ", mensaje);
+          // console.log("Mensaje publicado: ", mensaje);
+          // this.mensajeService.cargarMensajes();
         },
         error: (error) => {
           console.log("Error: ", error);
@@ -65,8 +67,30 @@ export class InicioComponent {
   }
 
   obtenerTiempoVidaMensaje(fechaPublicacion: Date) {
-    // console.log('fechaPublicacion: ', fechaPublicacion);
-    return "dfdfhghgh"
+    fechaPublicacion = new Date(fechaPublicacion);
+    const fechaPublicacionMilis = fechaPublicacion.getTime();
+    const tiempoDeVidaMilis = Date.now() - fechaPublicacionMilis;
+    const segundos = Math.floor((tiempoDeVidaMilis / 1000) % 60);
+    const minutos = Math.floor((tiempoDeVidaMilis / (1000 * 60)) % 60);
+    const horas =  Math.floor((tiempoDeVidaMilis / (1000 * 60 * 60)) % 24);
+    const dias = Math.floor(tiempoDeVidaMilis / (1000 * 60 * 60 * 24));
+
+    // console.log('Segundos:' + segundos+'\nMinutos: ' + minutos +'\nHoras: ' + horas +'\nDías: '+ dias);
+    //
+    // console.log(fechaPublicacion);
+    const tiempoDeVidaFormateado = format(tiempoDeVidaMilis, 'dd MMM yy');
+
+    if (segundos <= 59 && minutos === 0 && horas === 0 && dias === 0 ) {
+      return segundos + 's';
+    } else if (minutos <= 59 && horas === 0 && dias === 0) {
+      return minutos + 'm';
+    } else if (horas <= 59 && dias === 0) {
+      return horas + 'h';
+    } else if (dias <= 6) {
+      return dias + 'd';
+    } else {
+      return tiempoDeVidaFormateado;
+    }
   }
 
   gestionarLike(mensaje: Mensaje) {

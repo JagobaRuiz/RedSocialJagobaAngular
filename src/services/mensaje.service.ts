@@ -21,7 +21,7 @@ export class MensajeService {
     this.cargarMensajes();
   }
 
-  private cargarMensajes() {
+   cargarMensajes() {
     this.http.get<{ data: Mensaje[] }>(this.apiUrl)
       .pipe(
         tap(response => this.mensajesSubject.next(response.data))
@@ -48,18 +48,24 @@ export class MensajeService {
   publicarMensaje(texto: string, idUsuario: number, idRespuesta?: number): Observable<Mensaje> {
     return this.http.post<Mensaje>(this.apiUrl, {texto, idUsuario, idRespuesta}).pipe(
       tap(response => {
-        const mensajesActuales = this.mensajesSubject.value;
+        const mensajesActuales = this.mensajesSubject.value
+        console.log(mensajesActuales);
         if (mensajesActuales) {
-          mensajesActuales.unshift(response)
+          mensajesActuales.unshift(response);
+          // this.mensajesSubject.next([...mensajesActuales!, response]);
+          this.mensajesSubject.next(mensajesActuales);
+          // this.cargarMensajes();
         }
-        this.mensajesSubject.next(mensajesActuales);
 
-        const respuestasActuales = this.respuestasSubject.value;
+        if (idRespuesta) {
+          const respuestasActuales = this.respuestasSubject.value;
 
-        if (respuestasActuales) {
-          respuestasActuales.unshift(response);
+          if (respuestasActuales) {
+            respuestasActuales.unshift(response);
+          }
+          this.mensajesSubject.next(respuestasActuales);
         }
-        this.mensajesSubject.next(respuestasActuales);
+
       })
     );
   }
