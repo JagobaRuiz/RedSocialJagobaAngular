@@ -43,7 +43,7 @@ export class PerfilComponent implements OnInit {
         this.formularioActualizarPerfil = new FormGroup({
           nombre: new FormControl(this.usuarioActual.nombre!, [Validators.required, Validators.maxLength(15), Validators.pattern('^[a-zA-Z\\s]+$')]),
           username: new FormControl(this.usuarioActual.username!, [Validators.required, Validators.maxLength(20)]),
-          email: new FormControl(this.usuarioActual.email!, [Validators.required, Validators.email]),
+          // email: new FormControl(this.usuarioActual.email!, [Validators.required, Validators.email]),
           password: new FormControl(null, [Validators.required/*, Validators.minLength(8)*/]),
           imagen: new FormControl('')
         });
@@ -62,12 +62,22 @@ export class PerfilComponent implements OnInit {
   actualizar() {
     this.usuarioActual.nombre = this.formularioActualizarPerfil.get('nombre')?.value;
     this.usuarioActual.username = this.formularioActualizarPerfil.get('username')?.value;
-    this.usuarioActual.email = this.formularioActualizarPerfil.get('email')?.value;
+    // this.usuarioActual.email = this.formularioActualizarPerfil.get('email')?.value;
     this.usuarioActual.password = this.formularioActualizarPerfil.get('password')?.value;
 
     this.usuarioService.actualizarUsuario(this.usuarioActual).subscribe({
       next: (usuarioActualizado) => {
         console.log("usuario actualizado: ", usuarioActualizado);
+      },
+      error: (error) => {
+        if (error.error.error.errno === 19){
+          if (error.error.errorMessage.includes("email")) {
+            this.error = "Email repetido o no disponible";
+          } else if (error.error.errorMessage.includes("username")) {
+            this.error = "Nombre de usuario repetido o no disponible";
+          }
+        }
+        console.log("Error devuelto: ", error.error);
       }
     })
   }

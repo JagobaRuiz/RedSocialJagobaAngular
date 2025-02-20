@@ -92,11 +92,60 @@ app.post('/usuarios', (req, res) => {
 
 app.post('/usuarios/actualizar', (req, res) => {
   const usuario = req.body;
-  console.log(req.body);
-  const sql = 'UPDATE Usuarios SET nombre= ?, username = ?, email = ?, password = ? WHERE id = ?';
-  const params = [usuario.nombre, usuario.username, usuario.email, usuario.password, usuario.id];
+  // console.log(req.body);
+  let userEnBDD = {
+    id: 0,
+    nombre: '',
+    username: '',
+    email: '',
+    password: ''
+  };
+  const sqlSelect = 'SELECT * FROM Usuarios WHERE id = ?';
+  let sql = '';
+  let params = [usuario.id];
   let token = '';
-  console.log(req.body);
+  // console.log(req.body);
+
+  db.get(sqlSelect, params, function(err, row) {
+    if (err) {
+      res.status(400).json({"errorMessage": err.message, "error": err});
+      return;
+    } else if (row) {
+      console.log("Row: ", row);
+      userEnBDD = row;
+      // userEnBDD.id = row.id;
+      // userEnBDD.nombre = row.nombre;
+      // userEnBDD.username = row.username;
+      // userEnBDD.email = row.email;
+      // userEnBDD.password = row.password;
+      // token = jwt.sign({ idUsuario: usuario.id, username: usuario.username }, secretKey, { expiresIn: '1h' });
+    }
+  });
+
+  console.log(userEnBDD);
+
+  if (userEnBDD.nombre !== usuario.nombre && userEnBDD.username === usuario.username && userEnBDD.password === usuario.password) {
+    sql = 'UPDATE Usuarios SET nombre = ? WHERE id = ?';
+    params = [usuario.nombre, usuario.id];
+  } else if (userEnBDD.nombre !== usuario.nombre && userEnBDD.username !== usuario.username && userEnBDD.password === usuario.password) {
+    sql = 'UPDATE Usuarios SET nombre = ?, username = ? WHERE id = ?';
+    params = [usuario.nombre, usuario.username, usuario.id];
+  } else if (userEnBDD.nombre !== usuario.nombre && userEnBDD.username !== usuario.username && userEnBDD.password !== usuario.password) {
+    sql = 'UPDATE Usuarios SET nombre = ?, username = ?, password = ? WHERE id = ?';
+    params = [usuario.nombre, usuario.username, usuario.password, usuario.id];
+  } else if (userEnBDD.nombre === usuario.nombre && userEnBDD.username !== usuario.username && userEnBDD.password === usuario.password) {
+    sql = 'UPDATE Usuarios SET username = ? WHERE id = ?';
+    params = [usuario.username, usuario.id];
+  } else if (userEnBDD.nombre === usuario.nombre && userEnBDD.username !== usuario.username && userEnBDD.password !== usuario.password) {
+    sql = 'UPDATE Usuarios SET username = ?, password = ? WHERE id = ?';
+    params = [usuario.username, usuario.password ,usuario.id];
+  } else if (userEnBDD.nombre !== usuario.nombre && userEnBDD.username === usuario.username && userEnBDD.password !== usuario.password) {
+    sql = 'UPDATE Usuarios SET nombre = ?, password = ? WHERE id = ?';
+    params = [usuario.nombre, usuario.password ,usuario.id];
+  } else {
+    sql = 'UPDATE Usuarios SET password = ? WHERE id = ?';
+    params = [usuario.password ,usuario.id];
+  }
 
   db.run(sql, params, function(err) {
     if (err) {
@@ -116,6 +165,7 @@ app.post('/usuarios/actualizar', (req, res) => {
       }
     });
   });
+
 });
 
 
