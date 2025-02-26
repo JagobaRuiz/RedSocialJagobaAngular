@@ -52,6 +52,13 @@
     </div>
   </div>
 
+  <div class="row mb-3">
+    <div class="col-sm-10">
+      <img alt="" class="rounded-circle" [ngSrc]="'assets/profile_images/' + idUsuario + '.jpg'" width="80" height="80">
+    </div>
+
+  </div>
+
   <button class="btn btn-primary" type="submit" [disabled]="formularioActualizarPerfil.invalid">Enviar</button>
 </form>
 <div *ngIf="error" class="alert alert-danger">

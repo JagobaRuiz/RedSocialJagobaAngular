@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {FormGroup, FormControl, Validators, ReactiveFormsModule} from '@angular/forms';
-import { NgIf } from '@angular/common';
+import {NgIf, NgOptimizedImage} from '@angular/common';
 import { Usuario } from '../../models/usuario.model';
 import { UsuarioService } from '../../services/usuario.service';
 import { Observable } from 'rxjs';
@@ -13,7 +13,8 @@ import { map, switchMap } from 'rxjs/operators';
   templateUrl: './perfil.component.html',
   imports: [
     ReactiveFormsModule,
-    NgIf
+    NgIf,
+    NgOptimizedImage
   ],
   styleUrls: ['./perfil.component.scss']
 })
@@ -24,6 +25,7 @@ export class PerfilComponent implements OnInit {
   authToken$: Observable<string | null>;
   idUsuario$: Observable<number | null>;
   idUsuario!: number;
+  foto!: File;
 
   constructor(private usuarioService: UsuarioService, private router: Router, private authService: AuthService) {
     this.authToken$ = this.authService.authToken$;
@@ -52,10 +54,7 @@ export class PerfilComponent implements OnInit {
 
   comprobarImagen(event: any): void {
     if (event.target.files.length > 0) {
-      const file = event.target.files[0];
-      this.formularioActualizarPerfil.patchValue({
-        imagen: file
-      });
+      this.foto = event.target.files[0];
     }
   }
 
@@ -67,13 +66,22 @@ export class PerfilComponent implements OnInit {
 
     this.usuarioService.actualizarUsuario(this.usuarioActual).subscribe({
       next: (usuarioActualizado) => {
+        if (this.foto) {
+          const formData = new FormData();
+          formData.append('idUsuario', this.usuarioActual.id.toString());
+          formData.append('foto', this.foto, this.foto.name);
+
+          this.usuarioService.gestionarFotoPerfil(formData).subscribe({
+            next: (response) => {
+              console.log(response);
+            }
+          })
+        }
         console.log("usuario actualizado: ", usuarioActualizado);
       },
       error: (error) => {
         if (error.error.error.errno === 19){
-          if (error.error.errorMessage.includes("email")) {
-            this.error = "Email repetido o no disponible";
-          } else if (error.error.errorMessage.includes("username")) {
+          if (error.error.errorMessage.includes("username")) {
             this.error = "Nombre de usuario repetido o no disponible";
           }
         }

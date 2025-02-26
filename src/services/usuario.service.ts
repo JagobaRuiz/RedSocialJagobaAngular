@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {Usuario} from '../models/usuario.model';
 import {tap} from 'rxjs/operators';
@@ -27,7 +27,22 @@ export class UsuarioService {
   }
 
   addUsuario(nombre: string, username: string, email: string, password: string): Observable<Usuario> {
-    return this.http.post<Usuario>(this.apiUrl, {nombre, username, email, password});
+    // const formData: FormData = new FormData();
+    // console.log(foto);
+    // if (foto) {
+    //   formData.append('foto', foto);
+    //   for (let key of formData.entries()) {
+    //     console.log(key[0] + ', ' + key[1]);
+    //   }
+    // }
+
+    // const headers = new HttpHeaders();
+    // headers.append('Content-Type', 'multipart/form-data');
+    return this.http.post<Usuario>(this.apiUrl, {nombre, username, email, password}, /*{ headers: headers }*/);
+  }
+
+  gestionarFotoPerfil(formData: FormData): Observable<string> {
+    return this.http.post<string>(this.apiUrl + '/gestionar_foto_perfil', formData, /*{ headers: headers }*/);
   }
 
   actualizarUsuario(usuario: Usuario): Observable<UsuarioActualizado> {

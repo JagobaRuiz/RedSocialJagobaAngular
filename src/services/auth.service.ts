@@ -64,10 +64,10 @@ export class AuthService {
 
   desencriptarToken(token: string): any {
     try {
-      console.log("Token desencriptado ", jwtDecode(token));
+      // console.log("Token desencriptado ", jwtDecode(token));
       return jwtDecode(token);
     } catch (error: any) {
-      console.error('Token no válido:', error.message);
+      // console.error('Token no válido:', error.message);
       return null;
     }
   }

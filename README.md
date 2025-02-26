@@ -16,6 +16,7 @@ Proyecto creado con [Angular CLI](https://github.com/angular/angular-cli) versio
 * JWT-decode
 * Bootstrap
 * Bootstrap Icons
+* Multer
 
 
 ## Arrancar el proyecto

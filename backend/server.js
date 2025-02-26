@@ -4,6 +4,9 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const moment = require('moment-timezone');
+const fs = require('fs');
+const {join, extname} = require("node:path");
+const multer = require('multer');
 
 const app = express();
 const port = 3000;
@@ -64,32 +67,94 @@ app.get('/usuarios/:id', (req, res) => {
 });
 
 
+// Configuración de multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, join(__dirname, '../src/assets/profile_images'));
+  },
+  filename: function (req, file, cb) {
+    const customFileName = req.body.idUsuario+'.jpg';
+    cb(null, customFileName); // Genera un nombre único para cada archivo subido
+  }
+});
+
+const upload = multer({ storage: storage });
+
+
 // Ruta para Crear un Usuario
-app.post('/usuarios', (req, res) => {
+app.post('/usuarios', (req, res, next) => {
+  // Aquí puedes obtener el idUsuario y almacenarlo en la solicitud
+  // const { email } = req.body;
+  // req.body.email = email; // Almacena idUsuario en el cuerpo de la solicitud para acceso posterior
+  // next();
   const { nombre, username, email, password } = req.body;
+  const foto = req.file ? req.file.filename : 'sin_foto.jpg'; // Usar el nombre del archivo subido o una imagen por defecto
+
   const sql = 'INSERT INTO Usuarios (nombre, username, email, password) VALUES (?, ?, ?, ?)';
   const params = [nombre, username, email, password];
 
-  console.log(req.body);
-
   db.run(sql, params, function(err) {
     if (err) {
-      res.status(400).json({"errorMessage": err.message, "error": err});
+      res.status(400).json({ "errorMessage": err.message, "error": err });
       return;
     }
+
+    // if (!req.file) {
+    //   const defaultFilePath = join(__dirname, '../src/assets/profile_images/sin_foto.jpg');
+    //   const newFileName = `${email}.jpg`;
+    //   const newFilePath = join(__dirname, '../src/assets/profile_images', newFileName);
+    //
+    //   fs.copyFile(defaultFilePath, newFilePath, (err) => {
+    //     if (err) {
+    //       res.status(500).json({ "errorMessage": "Error al copiar la imagen por defecto", "error": err });
+    //       return
+    //     }
+    //   });
+    // }
+
     res.json({
-      "message": "success",
-      "data": {
         id: this.lastID,
         nombre,
         username,
         email,
-        password // Evita enviar la contraseña en respuestas JSON en producción
-      }
+        password, // Evita enviar la contraseña en respuestas JSON en producción
     });
   });
 });
 
+//Ruta para gestionar foto de perfil
+
+app.post('/usuarios/gestionar_foto_perfil', (req, res, next) => {
+  // Aquí puedes obtener el idUsuario y almacenarlo en la solicitud
+  const { idUsuario } = req.body;
+  if (idUsuario) {
+    req.body.idUsuario = idUsuario;
+  }
+  // Almacena idUsuario en el cuerpo de la solicitud para acceso posterior
+  next();
+}, upload.single('foto'), (req, res) => {
+  const { idUsuario } = req.body;
+  // const foto = req.file ? req.file.filename : 'sin_foto.jpg'; // Usar el nombre del archivo subido o una imagen por defecto
+  //
+  // const sql = 'INSERT INTO Usuarios (nombre, username, email, password) VALUES (?, ?, ?, ?)';
+  // const params = [nombre, username, email, password];
+  if (!req.file) {
+    const defaultFilePath = join(__dirname, '../src/assets/profile_images/sin_foto.jpg');
+    const newFileName = `${idUsuario}.jpg`;
+    const newFilePath = join(__dirname, '../src/assets/profile_images', newFileName);
+
+    fs.copyFile(defaultFilePath, newFilePath, (err) => {
+      if (err) {
+        res.status(500).json({ "errorMessage": "Error al copiar la imagen por defecto", "error": err });
+        return;
+      }
+    });
+  }
+  res.json('Imagen de perfil actualizada');
+});
+
+
+// Ruta para actualizar usuario
 app.post('/usuarios/actualizar', (req, res) => {
   const usuario = req.body;
   // console.log(req.body);
@@ -165,9 +230,13 @@ app.post('/usuarios/actualizar', (req, res) => {
       }
     });
   });
-
 });
 
+//Función para gestionar imágenes de perfil
+
+const gestionarImagenPerfil = (imagen) => {
+
+}
 
 // Ruta para login por username
 app.post('/login_username', (req, res) => {
