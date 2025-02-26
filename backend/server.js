@@ -7,6 +7,7 @@ const moment = require('moment-timezone');
 const fs = require('fs');
 const {join, extname} = require("node:path");
 const multer = require('multer');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const port = 3000;
@@ -82,44 +83,34 @@ const upload = multer({ storage: storage });
 
 
 // Ruta para Crear un Usuario
-app.post('/usuarios', (req, res, next) => {
-  // Aquí puedes obtener el idUsuario y almacenarlo en la solicitud
-  // const { email } = req.body;
-  // req.body.email = email; // Almacena idUsuario en el cuerpo de la solicitud para acceso posterior
-  // next();
+app.post('/usuarios', async (req, res) => {
   const { nombre, username, email, password } = req.body;
-  const foto = req.file ? req.file.filename : 'sin_foto.jpg'; // Usar el nombre del archivo subido o una imagen por defecto
 
-  const sql = 'INSERT INTO Usuarios (nombre, username, email, password) VALUES (?, ?, ?, ?)';
-  const params = [nombre, username, email, password];
+  try {
+    // Encriptar la contraseña antes de almacenarla
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  db.run(sql, params, function(err) {
-    if (err) {
-      res.status(400).json({ "errorMessage": err.message, "error": err });
-      return;
-    }
+    const sql = 'INSERT INTO Usuarios (nombre, username, email, password) VALUES (?, ?, ?, ?)';
+    const params = [nombre, username, email, hashedPassword];
 
-    // if (!req.file) {
-    //   const defaultFilePath = join(__dirname, '../src/assets/profile_images/sin_foto.jpg');
-    //   const newFileName = `${email}.jpg`;
-    //   const newFilePath = join(__dirname, '../src/assets/profile_images', newFileName);
-    //
-    //   fs.copyFile(defaultFilePath, newFilePath, (err) => {
-    //     if (err) {
-    //       res.status(500).json({ "errorMessage": "Error al copiar la imagen por defecto", "error": err });
-    //       return
-    //     }
-    //   });
-    // }
+    db.run(sql, params, function(err) {
+      if (err) {
+        res.status(400).json({ "errorMessage": err.message, "error": err });
+        return;
+      }
 
-    res.json({
+      res.json({
         id: this.lastID,
         nombre,
         username,
         email,
-        password, // Evita enviar la contraseña en respuestas JSON en producción
+        password: null
+        // Eliminar la contraseña de la respuesta
+      });
     });
-  });
+  } catch (err) {
+    res.status(500).json({ "errorMessage": err.message, "error": err });
+  }
 });
 
 //Ruta para gestionar foto de perfil
@@ -155,81 +146,50 @@ app.post('/usuarios/gestionar_foto_perfil', (req, res, next) => {
 
 
 // Ruta para actualizar usuario
-app.post('/usuarios/actualizar', (req, res) => {
-  const usuario = req.body;
-  // console.log(req.body);
-  let userEnBDD = {
-    id: 0,
-    nombre: '',
-    username: '',
-    email: '',
-    password: ''
-  };
-  const sqlSelect = 'SELECT * FROM Usuarios WHERE id = ?';
-  let sql = '';
-  let params = [usuario.id];
-  let token = '';
-  // console.log(req.body);
-
-  db.get(sqlSelect, params, function(err, row) {
-    if (err) {
-      res.status(400).json({"errorMessage": err.message, "error": err});
-      return;
-    } else if (row) {
-      console.log("Row: ", row);
-      userEnBDD = row;
-      // userEnBDD.id = row.id;
-      // userEnBDD.nombre = row.nombre;
-      // userEnBDD.username = row.username;
-      // userEnBDD.email = row.email;
-      // userEnBDD.password = row.password;
-      // token = jwt.sign({ idUsuario: usuario.id, username: usuario.username }, secretKey, { expiresIn: '1h' });
+app.put('/usuarios/actualizar', async (req, res) => {
+  const {idUsuario, nombre, username, password} = req.body;
+  try {
+    // Si se proporciona una nueva contraseña, encriptarla
+    let hashedPassword = null;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
     }
-  });
 
-  console.log(userEnBDD);
+    // Construir la consulta SQL dinámica
+    let sql = 'UPDATE Usuarios SET nombre = ?, username = ?';
+    let params = [nombre, username];
+    let token = '';
 
-  if (userEnBDD.nombre !== usuario.nombre && userEnBDD.username === usuario.username && userEnBDD.password === usuario.password) {
-    sql = 'UPDATE Usuarios SET nombre = ? WHERE id = ?';
-    params = [usuario.nombre, usuario.id];
-  } else if (userEnBDD.nombre !== usuario.nombre && userEnBDD.username !== usuario.username && userEnBDD.password === usuario.password) {
-    sql = 'UPDATE Usuarios SET nombre = ?, username = ? WHERE id = ?';
-    params = [usuario.nombre, usuario.username, usuario.id];
-  } else if (userEnBDD.nombre !== usuario.nombre && userEnBDD.username !== usuario.username && userEnBDD.password !== usuario.password) {
-    sql = 'UPDATE Usuarios SET nombre = ?, username = ?, password = ? WHERE id = ?';
-    params = [usuario.nombre, usuario.username, usuario.password, usuario.id];
-  } else if (userEnBDD.nombre === usuario.nombre && userEnBDD.username !== usuario.username && userEnBDD.password === usuario.password) {
-    sql = 'UPDATE Usuarios SET username = ? WHERE id = ?';
-    params = [usuario.username, usuario.id];
-  } else if (userEnBDD.nombre === usuario.nombre && userEnBDD.username !== usuario.username && userEnBDD.password !== usuario.password) {
-    sql = 'UPDATE Usuarios SET username = ?, password = ? WHERE id = ?';
-    params = [usuario.username, usuario.password ,usuario.id];
-  } else if (userEnBDD.nombre !== usuario.nombre && userEnBDD.username === usuario.username && userEnBDD.password !== usuario.password) {
-    sql = 'UPDATE Usuarios SET nombre = ?, password = ? WHERE id = ?';
-    params = [usuario.nombre, usuario.password ,usuario.id];
-  } else {
-    sql = 'UPDATE Usuarios SET password = ? WHERE id = ?';
-    params = [usuario.password ,usuario.id];
-  }
-
-  db.run(sql, params, function(err) {
-    if (err) {
-      res.status(400).json({"errorMessage": err.message, "error": err});
-      return;
-    } else {
-      token = jwt.sign({ idUsuario: usuario.id, username: usuario.username }, secretKey, { expiresIn: '1h' });
+    if (hashedPassword) {
+      sql += ', password = ?';
+      params.push(hashedPassword);
     }
-    res.json({
-      "token": token,
-      "usuario": {
-        id: usuario.id,
-        nombre: usuario.nombre,
-        username: usuario.username,
-        email: usuario.email,
-        password: 'Contraseña no visible por seguridad' // Evita enviar la contraseña en respuestas JSON en producción
+
+    sql += ' WHERE id = ?';
+    params.push(idUsuario);
+
+    db.run(sql, params, function (err) {
+      if (err) {
+        res.status(400).json({"errorMessage": err.message, "error": err});
+        return;
+      } else {
+        token = jwt.sign({ idUsuario: idUsuario, username: username }, secretKey, { expiresIn: '1h' });
       }
+
+      res.json({
+        "token": token,
+        "usuario": {
+          id: idUsuario,
+          nombre: nombre,
+          username: username,
+          email: null,
+          password: null // Evita enviar la contraseña en respuestas JSON en producción
+        }
+      });
     });
-  });
+  } catch (err) {
+    res.status(500).json({"errorMessage": err.message, "error": err});
+  }
 });
 
 //Función para gestionar imágenes de perfil
@@ -241,28 +201,27 @@ const gestionarImagenPerfil = (imagen) => {
 // Ruta para login por username
 app.post('/login_username', (req, res) => {
   const { username, password } = req.body;
-  const sql = 'SELECT * FROM Usuarios WHERE username = ? AND password = ?';
-  const params = [username, password];
+  const sql = 'SELECT * FROM Usuarios WHERE username = ?';
+  const params = [username];
 
   db.get(sql, params, (err, row) => {
     if (err) {
       return res.status(500).json({ "error": "Error al conectar a la base de datos" });
     }
     if (row) {
-      const token = jwt.sign({ idUsuario: row.id, username: row.username }, secretKey, { expiresIn: '1h' });
-      res.json({
-        message: 'Login exitoso',
-        token: token
-      });
       // Comparar la contraseña hashada
-      // bcrypt.compare(password, row.password, (err, result) => {
-      //   if (result) {
-      //     // Crear y firmar el token JWT
-      //
-      //   } else {
-      //     res.status(401).json({ error: 'Contraseña incorrecta' });
-      //   }
-      // });
+      bcrypt.compare(password, row.password, (err, result) => {
+        if (result) {
+          // Crear y firmar el token JWT
+          const token = jwt.sign({ idUsuario: row.id, username: row.username }, secretKey, { expiresIn: '1h' });
+          res.json({
+            message: 'Login exitoso',
+            token: token
+          });
+        } else {
+          res.status(401).json({ error: 'Contraseña incorrecta' });
+        }
+      });
     } else {
       res.status(404).json({ error: 'Usuario o contraseña incorrectos' });
     }

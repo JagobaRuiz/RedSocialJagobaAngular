@@ -38,6 +38,8 @@
     <label for="password" class="col-sm-2 col-form-label">Contraseña:</label>
     <div class="col-sm-10">
       <input id="password" type="password" formControlName="password" class="form-control">
+      <label for="noCambiarPassword">Cambiar contraseña</label>
+      <input id="noCambiarPassword" type="checkbox" formControlName="noCambiarPassword" />
       <div *ngIf="formularioActualizarPerfil.get('password')?.invalid && formularioActualizarPerfil.get('password')?.touched">
         <small *ngIf="formularioActualizarPerfil.get('password')?.errors?.['required']">La contraseña es obligatoria.</small>
         <small *ngIf="formularioActualizarPerfil.get('password')?.errors?.['minLength']">La contraseña debe tener al menos 8 caracteres.</small>

@@ -3,6 +3,7 @@ import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {Usuario} from '../../models/usuario.model';
 import {CommonModule} from '@angular/common';
 import {UsuarioService} from '../../services/usuario.service';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-registro',
@@ -24,7 +25,7 @@ export class RegistroComponent implements OnInit {
   error: string = "";
 
 
-  constructor(private usuarioService: UsuarioService) {
+  constructor(private usuarioService: UsuarioService, private router: Router) {
     this.formularioRegistro = new FormGroup({
       nombre: new FormControl('', [Validators.required, Validators.maxLength(15), Validators.pattern('^[a-zA-Z\\s]+$')]),
       username: new FormControl('', [Validators.required, Validators.maxLength(20)]),
@@ -84,6 +85,7 @@ export class RegistroComponent implements OnInit {
           this.usuarioService.gestionarFotoPerfil(formDataFoto).subscribe({
             next: (response) => {
               console.log(response);
+              this.router.navigate(['login']);
             }
           });
           console.log('Usuario registrado: ', response);

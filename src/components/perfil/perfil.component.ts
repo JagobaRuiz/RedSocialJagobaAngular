@@ -1,5 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import {FormGroup, FormControl, Validators, ReactiveFormsModule} from '@angular/forms';
+import {
+  FormGroup,
+  FormControl,
+  Validators,
+  ReactiveFormsModule,
+  AbstractControl,
+  ValidationErrors
+} from '@angular/forms';
 import {NgIf, NgOptimizedImage} from '@angular/common';
 import { Usuario } from '../../models/usuario.model';
 import { UsuarioService } from '../../services/usuario.service';
@@ -46,10 +53,32 @@ export class PerfilComponent implements OnInit {
           nombre: new FormControl(this.usuarioActual.nombre!, [Validators.required, Validators.maxLength(15), Validators.pattern('^[a-zA-Z\\s]+$')]),
           username: new FormControl(this.usuarioActual.username!, [Validators.required, Validators.maxLength(20)]),
           // email: new FormControl(this.usuarioActual.email!, [Validators.required, Validators.email]),
-          password: new FormControl(null, [Validators.required/*, Validators.minLength(8)*/]),
-          imagen: new FormControl('')
+          password: new FormControl(null, [this.agregarRequerido]),
+          imagen: new FormControl(''),
+          noCambiarPassword: new FormControl(false)
         });
+      this.formularioActualizarPerfil.get('noCambiarPassword')?.valueChanges.subscribe(checked => {
+        const passwordControl = this.formularioActualizarPerfil.get('password');
+        if (checked) {
+          passwordControl?.enable();
+        } else {
+          passwordControl?.disable();
+        }
       });
+
+      // Deshabilitar inicialmente el campo username si el checkbox no está marcado
+      if (!this.formularioActualizarPerfil.get('noCambiarPassword')?.value) {
+        this.formularioActualizarPerfil.get('password')?.disable();
+      }
+
+      });
+  }
+
+  agregarRequerido(control: AbstractControl): ValidationErrors | null {
+    if (control.disabled) {
+      return null;
+    }
+    return Validators.required(control);
   }
 
   comprobarImagen(event: any): void {
@@ -64,7 +93,10 @@ export class PerfilComponent implements OnInit {
     // this.usuarioActual.email = this.formularioActualizarPerfil.get('email')?.value;
     this.usuarioActual.password = this.formularioActualizarPerfil.get('password')?.value;
 
-    this.usuarioService.actualizarUsuario(this.usuarioActual).subscribe({
+    console.log("Password: ", this.formularioActualizarPerfil.get('password')?.value);
+    console.log("Id: ", this.usuarioActual.id);
+
+    this.usuarioService.actualizarUsuario(this.usuarioActual.id, this.formularioActualizarPerfil.get('nombre')?.value, this.formularioActualizarPerfil.get('username')?.value, this.formularioActualizarPerfil.get('password')?.value).subscribe({
       next: (usuarioActualizado) => {
         if (this.foto) {
           const formData = new FormData();

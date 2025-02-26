@@ -21,17 +21,17 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.usuarioService.getUsuarios().subscribe(
-      res => {
-        console.log(res);
-      }
-    )
-
-    this.usuarioService.getUsuarioPorId(1).subscribe(
-      res => {
-        console.log(res);
-      }
-    )
+    // this.usuarioService.getUsuarios().subscribe(
+    //   res => {
+    //     console.log(res);
+    //   }
+    // )
+    //
+    // this.usuarioService.getUsuarioPorId(1).subscribe(
+    //   res => {
+    //     console.log(res);
+    //   }
+    // )
   }
 }
 

@@ -45,8 +45,8 @@ export class UsuarioService {
     return this.http.post<string>(this.apiUrl + '/gestionar_foto_perfil', formData, /*{ headers: headers }*/);
   }
 
-  actualizarUsuario(usuario: Usuario): Observable<UsuarioActualizado> {
-    return this.http.post<UsuarioActualizado>(this.apiUrl + "/actualizar", usuario).pipe(
+  actualizarUsuario(idUsuario: number, nombre: string, username: string, password?: string): Observable<UsuarioActualizado> {
+    return this.http.put<UsuarioActualizado>(this.apiUrl + "/actualizar", {idUsuario, nombre, username, password}).pipe(
       tap(res => {
         console.log(res);
         localStorage.removeItem('authToken');
