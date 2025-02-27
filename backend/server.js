@@ -27,7 +27,12 @@ const db = new sqlite3.Database('../bdd.db', sqlite3.OPEN_READWRITE, (err) => {
   console.log('Connected to the SQLite database.');
 });
 
+
+
 // Rutas para Usuarios
+
+
+//Obtener todos los usuarios
 app.get('/usuarios', (req, res) => {
   const sql = 'SELECT * FROM Usuarios';
   db.all(sql, [], (err, rows) => {
@@ -42,12 +47,14 @@ app.get('/usuarios', (req, res) => {
         nombre: row.nombre,
         username: row.username,
         email: row.email,
-        password: row.password // Evita enviar la contraseña en respuestas JSON en producción
+        password: null
       }))
     });
   });
 });
 
+
+//Obtener un usuario por su Id
 app.get('/usuarios/:id', (req, res) => {
   const sql = 'SELECT * FROM Usuarios WHERE id = ?';
   const params = [req.params.id];
@@ -62,16 +69,16 @@ app.get('/usuarios/:id', (req, res) => {
           nombre: row.nombre,
           username: row.username,
           email: row.email,
-          password: row.password // Evita enviar la contraseña en respuestas JSON en producción
+          password: null
       });
     } else {
-      res.status(404).json({"error": "User not found"});
+      res.status(404).json({"error": "Usuario no encontrado"});
     }
   });
 });
 
 
-// Configuración de multer
+// Configuración de multer para gestionar las fotos de perfil
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, join(__dirname, '../src/assets/profile_images'));
@@ -83,6 +90,8 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+
+
 
 
 // Ruta para Crear un Usuario
@@ -108,7 +117,6 @@ app.post('/usuarios', async (req, res) => {
         username,
         email,
         password: null
-        // Eliminar la contraseña de la respuesta
       });
     });
   } catch (err) {
@@ -116,8 +124,9 @@ app.post('/usuarios', async (req, res) => {
   }
 });
 
-//Ruta para gestionar foto de perfil
 
+
+//Ruta para gestionar foto de perfil
 app.post('/usuarios/gestionar_foto_perfil', (req, res, next) => {
   // Aquí puedes obtener el idUsuario y almacenarlo en la solicitud
   const { idUsuario } = req.body;
@@ -128,10 +137,7 @@ app.post('/usuarios/gestionar_foto_perfil', (req, res, next) => {
   next();
 }, upload.single('foto'), (req, res) => {
   const { idUsuario } = req.body;
-  // const foto = req.file ? req.file.filename : 'sin_foto.jpg'; // Usar el nombre del archivo subido o una imagen por defecto
-  //
-  // const sql = 'INSERT INTO Usuarios (nombre, username, email, password) VALUES (?, ?, ?, ?)';
-  // const params = [nombre, username, email, password];
+
   if (!req.file) {
     const defaultFilePath = join(__dirname, '../src/assets/profile_images/sin_foto.jpg');
     const newFileName = `${idUsuario}.jpg`;
@@ -158,7 +164,6 @@ app.put('/usuarios/actualizar', verificarToken, async (req, res) => {
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
-    // Construir la consulta SQL dinámica
     let sql = 'UPDATE Usuarios SET nombre = ?, username = ?';
     let params = [nombre, username];
     let token = '';
@@ -193,6 +198,8 @@ app.put('/usuarios/actualizar', verificarToken, async (req, res) => {
   }
 });
 
+
+
 // Ruta para login por username
 app.post('/login_username', (req, res) => {
   const { username, password } = req.body;
@@ -204,7 +211,7 @@ app.post('/login_username', (req, res) => {
       return res.status(500).json({ "error": "Error al conectar a la base de datos" });
     }
     if (row) {
-      // Comparar la contraseña hashada
+      // Comparar la contraseña hasheada
       bcrypt.compare(password, row.password, (err, result) => {
         if (result) {
           // Crear y firmar el token JWT
@@ -223,7 +230,16 @@ app.post('/login_username', (req, res) => {
   });
 });
 
+
+
+
+// RUTAS PARA MENSAJES
+
+
+
 //Obtener mensajes con toda la información
+
+
 
 // Función para obtener mensajes con sus respuestas recursivamente
 const obtenerMensajes = (mensajeId, callback) => {
@@ -360,6 +376,10 @@ const obtenerMensajes = (mensajeId, callback) => {
   });
 };
 
+
+
+
+
 // Función para obtener todos los mensajes y sus respuestas recursivamente
 const obtenerTodosMensajes = (callback) => {
   const sql = `
@@ -489,7 +509,11 @@ const obtenerTodosMensajes = (callback) => {
   });
 };
 
-// Endpoint para obtener todos los mensajes y sus respuestas
+
+
+
+
+// Ruta para obtener todos los mensajes y sus respuestas
 app.get('/mensajes', (req, res) => {
   obtenerTodosMensajes((err, mensajes) => {
     if (err) {
@@ -501,181 +525,9 @@ app.get('/mensajes', (req, res) => {
 });
 
 
-// app.get('/mensajes', (req, res) => {
-//   const mensajesQuery = `
-//     SELECT
-//       m.id, m.texto, m.fecha, m.id_respuesta,
-//       u.id AS usuario_id, u.nombre AS usuario_nombre, u.username AS usuario_username, u.email AS usuario_email
-//     FROM Mensajes m
-//     JOIN Usuarios u ON m.id_usuario = u.id
-//   `;
-//   db.all(mensajesQuery, [], (err, mensajes) => {
-//     if (err) {
-//       return res.status(500).json({ error: err.message });
-//     }
-//
-//     const mensajesConRespuestas = mensajes.map(mensaje => ({
-//       id: mensaje.id,
-//       texto: mensaje.texto,
-//       fecha: mensaje.fecha,
-//       usuario: {
-//         id: mensaje.usuario_id,
-//         nombre: mensaje.usuario_nombre,
-//         username: mensaje.usuario_username,
-//         email: mensaje.usuario_email
-//       },
-//       respuestas: [],
-//       lesGusta: []
-//     }));
-//
-//     const respuestasQuery = `
-//       SELECT
-//         r.id, r.texto, r.fecha, r.id_respuesta,
-//         ur.id AS usuario_id, ur.nombre AS usuario_nombre, ur.username AS usuario_username, ur.email AS usuario_email,
-//         mr.id AS respuesta_id
-//       FROM Mensajes r
-//       JOIN Usuarios ur ON r.id_usuario = ur.id
-//       LEFT JOIN Mensajes mr ON r.id_respuesta = mr.id
-//     `;
-//     db.all(respuestasQuery, [], (err, respuestas) => {
-//       if (err) {
-//         return res.status(500).json({ error: err.message });
-//       }
-//
-//       respuestas.forEach(respuesta => {
-//         const mensajeIndex = mensajesConRespuestas.findIndex(m => m.id === respuesta.id_respuesta);
-//         if (mensajeIndex > -1) {
-//           mensajesConRespuestas[mensajeIndex].respuestas.push({
-//             id: respuesta.id,
-//             texto: respuesta.texto,
-//             fecha: respuesta.fecha,
-//             usuario: {
-//               id: respuesta.usuario_id,
-//               nombre: respuesta.usuario_nombre,
-//               username: respuesta.usuario_username,
-//               email: respuesta.usuario_email
-//             },
-//             respuestas: []
-//           });
-//         }
-//       });
-//
-//       const likesQuery = `
-//         SELECT
-//           l.id_mensaje, u.id AS usuario_id, u.nombre AS usuario_nombre, u.username AS usuario_username, u.email AS usuario_email
-//         FROM Likes l
-//         JOIN Usuarios u ON l.id_usuario = u.id
-//       `;
-//       db.all(likesQuery, [], (err, likes) => {
-//         if (err) {
-//           return res.status(500).json({ error: err.message });
-//         }
-//
-//         likes.forEach(like => {
-//           const mensajeIndex = mensajesConRespuestas.findIndex(m => m.id === like.id_mensaje);
-//           if (mensajeIndex > -1) {
-//             mensajesConRespuestas[mensajeIndex].lesGusta.push({
-//               id: like.usuario_id,
-//               nombre: like.usuario_nombre,
-//               username: like.usuario_username,
-//               email: like.usuario_email
-//             });
-//           }
-//         });
-//
-//         res.json({ data: mensajesConRespuestas });
-//       });
-//     });
-//   });
-// });
 
-// Ruta para obtener un mensaje y sus respuestas
 
-// const obtenerRespuestas = (mensajeId, callback) => {
-//   const sql = `
-//     SELECT
-//       r.id AS respuesta_id,
-//       r.texto AS respuesta_texto,
-//       r.fecha AS respuesta_fecha,
-//       ur.id AS respuesta_usuario_id,
-//       ur.nombre AS respuesta_usuario_nombre,
-//       ur.username AS respuesta_usuario_username,
-//       ur.email AS respuesta_usuario_email,
-//       m.id AS mensaje_id,
-//       m.texto AS mensaje_texto,
-//       m.fecha AS mensaje_fecha,
-//       um.id AS mensaje_usuario_id,
-//       um.nombre AS mensaje_usuario_nombre,
-//       um.username AS mensaje_usuario_username,
-//       um.email AS mensaje_usuario_email,
-//       lr.id_usuario AS like_usuario_id,
-//       ul.nombre AS like_usuario_nombre,
-//       ul.username AS like_usuario_username,
-//       ul.email AS like_usuario_email
-//     FROM Mensajes r
-//     JOIN Usuarios ur ON r.id_usuario = ur.id
-//     LEFT JOIN Mensajes m ON r.id_respuesta = m.id
-//     LEFT JOIN Usuarios um ON m.id_usuario = um.id
-//     LEFT JOIN Likes lr ON lr.id_mensaje = r.id
-//     LEFT JOIN Usuarios ul ON lr.id_usuario = ul.id
-//     WHERE r.id_respuesta = ?;
-//   `;
-//   const params = [mensajeId];
-//
-//   db.all(sql, params, (err, rows) => {
-//     if (err) {
-//       return callback(err);
-//     }
-//
-//     const respuestas = rows.map(row => ({
-//       id: row.respuesta_id,
-//       texto: row.respuesta_texto,
-//       fecha: row.respuesta_fecha,
-//       usuario: {
-//         id: row.respuesta_usuario_id,
-//         nombre: row.respuesta_usuario_nombre,
-//         username: row.respuesta_usuario_username,
-//         email: row.respuesta_usuario_email
-//       },
-//       id_respuesta: row.mensaje_id,
-//       mensaje: row.mensaje_id ? {
-//         id: row.mensaje_id,
-//         texto: row.mensaje_texto,
-//         fecha: row.mensaje_fecha,
-//         usuario: {
-//           id: row.mensaje_usuario_id,
-//           nombre: row.mensaje_usuario_nombre,
-//           username: row.mensaje_usuario_username,
-//           email: row.mensaje_usuario_email
-//         },
-//         respuestas: [],
-//         lesGusta: []
-//       } : null,
-//       respuestas: [],
-//       lesGusta: []
-//     }));
-//
-//     // Obtener respuestas de cada respuesta de manera recursiva
-//     let count = 0;
-//     if (respuestas.length === 0) {
-//       return callback(null, respuestas);
-//     }
-//
-//     respuestas.forEach((respuesta, index) => {
-//       obtenerRespuestas(respuesta.id, (err, nestedRespuestas) => {
-//         if (err) {
-//           return callback(err);
-//         }
-//
-//         respuestas[index].respuestas = nestedRespuestas;
-//
-//         if (++count === respuestas.length) {
-//           callback(null, respuestas);
-//         }
-//       });
-//     });
-//   });
-// };
+
 
 const obtenerRespuestas = (mensajeId, callback) => {
   const sql = `
@@ -819,44 +671,8 @@ app.get('/mensajes/:id/respuestas', (req, res) => {
 
 
 
-// app.get('/mensajes/:id/respuestas', (req, res) => {
-//   const mensajeId = req.params.id;
-//   const sql = `
-//     SELECT
-//         m1.id AS mensaje_id,
-//         m1.texto AS mensaje_texto,
-//         m1.fecha AS mensaje_fecha,
-//         u1.nombre AS usuario_nombre,
-//         r.id AS respuesta_id,
-//         r.texto AS respuesta_texto,
-//         r.fecha AS respuesta_fecha,
-//         u2.nombre AS respuesta_usuario_nombre
-//     FROM
-//         Mensajes m1
-//     LEFT JOIN
-//         Mensajes r ON r.id_respuesta = m1.id
-//     LEFT JOIN
-//         Usuarios u1 ON m1.id_usuario = u1.id
-//     LEFT JOIN
-//         Usuarios u2 ON r.id_usuario = u2.id
-//     WHERE
-//         m1.id = ?
-//   `;
-//   const params = [mensajeId];
-//   db.all(sql, params, (err, rows) => {
-//     if (err) {
-//       res.status(400).json({"error": err.message});
-//       return;
-//     }
-//     res.json({
-//       "message": "success",
-//       "data": rows
-//     });
-//   });
-// });
-
 // Ruta para crear un Mensaje
-app.post('/mensajes', (req, res) => {
+app.post('/mensajes', verificarToken, (req, res) => {
   const { texto, idUsuario, idRespuesta } = req.body;
   const fecha = moment().tz('Europe/Madrid').format('YYYY-MM-DD HH:mm:ss');
   const insertSql = `INSERT INTO Mensajes (texto, id_usuario, fecha, id_respuesta) VALUES (?, ?, ?, ?)`;
@@ -902,8 +718,16 @@ app.post('/mensajes', (req, res) => {
   });
 });
 
-//Endpoint para crear like
-app.post('/mensajes/darLike', (req, res) => {
+
+
+// RUTAS PARA LIKES
+
+
+
+
+
+//Ruta para crear like
+app.post('/mensajes/likes/dar', verificarToken ,(req, res) => {
   const { idUsuario, idMensaje} = req.body;
   const sql = 'INSERT INTO Likes (id_usuario, id_mensaje) VALUES (?, ?)';
   const params = [idUsuario, idMensaje];
@@ -925,8 +749,8 @@ app.post('/mensajes/darLike', (req, res) => {
   });
 });
 
-//Endpoint para quitar like
-app.post('/mensajes/quitarLike', (req, res) => {
+//Ruta para quitar like
+app.post('/mensajes/likes/quitar', verificarToken, (req, res) => {
   const { idUsuario, idMensaje} = req.body;
   const sql = 'DELETE FROM Likes WHERE id_usuario = ? AND id_mensaje = ?';
   const params = [idUsuario, idMensaje];
@@ -947,6 +771,10 @@ app.post('/mensajes/quitarLike', (req, res) => {
     });
   });
 });
+
+
+
+
 
 // Iniciar el servidor
 app.listen(port, () => {

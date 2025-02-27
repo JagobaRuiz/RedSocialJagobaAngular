@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {Mensaje} from '../models/mensaje.model';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Router} from '@angular/router';
 import {tap} from 'rxjs/operators';
 import {Usuario} from '../models/usuario.model';
 import {Like} from '../models/like.model';
+import {format} from 'date-fns';
 
 @Injectable({
   providedIn: 'root'
@@ -46,7 +47,11 @@ export class MensajeService {
   }
 
   publicarMensaje(texto: string, idUsuario: number, idRespuesta?: number): Observable<Mensaje> {
-    return this.http.post<Mensaje>(this.apiUrl, {texto, idUsuario, idRespuesta}).pipe(
+    let headers = new HttpHeaders({
+      'Authorization' : 'Bearer '+ localStorage.getItem('authToken')
+    });
+
+    return this.http.post<Mensaje>(this.apiUrl, {texto, idUsuario, idRespuesta}, {headers: headers}).pipe(
       tap(response => {
         const mensajesActuales = this.mensajesSubject.value
         console.log(mensajesActuales);
@@ -71,7 +76,12 @@ export class MensajeService {
   }
 
   darLike(idUsuario: number, idMensaje: number, vieneDeRespuestas?: boolean): Observable<Like> {
-    return this.http.post<Like>(this.apiUrl + '/darLike', {idUsuario, idMensaje}).pipe(
+    let headers = new HttpHeaders({
+      'Authorization' : 'Bearer '+ localStorage.getItem('authToken')
+    });
+    console.log(headers);
+
+    return this.http.post<Like>(this.apiUrl + '/likes/dar', {idUsuario, idMensaje}, {headers: headers}).pipe(
       tap(response => {
         if (vieneDeRespuestas) {
           this.cargarRespuestas(idMensaje);
@@ -84,7 +94,10 @@ export class MensajeService {
   }
 
   quitarLike(idUsuario: number, idMensaje: number, vieneDeRespuestas?: boolean): Observable<Like> {
-    return this.http.post<Like>(this.apiUrl + '/quitarLike', {idUsuario, idMensaje}).pipe(
+    let headers = new HttpHeaders({
+      'Authorization' : 'Bearer '+ localStorage.getItem('authToken')
+    });
+    return this.http.post<Like>(this.apiUrl + '/likes/quitar', {idUsuario, idMensaje}, {headers: headers}).pipe(
       tap(response => {
         if (vieneDeRespuestas) {
           this.cargarRespuestas(idMensaje);
@@ -95,4 +108,63 @@ export class MensajeService {
     )
 
   }
+
+  obtenerTiempoVida(fechaPublicacion: Date): string {
+    fechaPublicacion = new Date(fechaPublicacion);
+    const fechaPublicacionMilis = fechaPublicacion.getTime();
+    const tiempoDeVidaMilis = Date.now() - fechaPublicacionMilis;
+    const segundos = Math.floor((tiempoDeVidaMilis / 1000) % 60);
+    const minutos = Math.floor((tiempoDeVidaMilis / (1000 * 60)) % 60);
+    const horas =  Math.floor((tiempoDeVidaMilis / (1000 * 60 * 60)) % 24);
+    const dias = Math.floor(tiempoDeVidaMilis / (1000 * 60 * 60 * 24));
+
+    // console.log('Segundos:' + segundos+'\nMinutos: ' + minutos +'\nHoras: ' + horas +'\nDías: '+ dias);
+    //
+    // console.log(fechaPublicacion);
+    const fechaPublicacionFormateada = format(fechaPublicacion, 'dd MMM yy');
+
+    if (segundos <= 59 && minutos === 0 && horas === 0 && dias === 0 ) {
+      return segundos + 's';
+    } else if (minutos <= 59 && horas === 0 && dias === 0) {
+      return minutos + 'm';
+    } else if (horas <= 59 && dias === 0) {
+      return horas + 'h';
+    } else if (dias <= 6) {
+      return dias + 'd';
+    } else {
+      return fechaPublicacionFormateada;
+    }
+  }
+
+
+  gestionarLike(mensaje: Mensaje, idUsuario$: Observable<number | null>) {
+    let idUsuario: number | null = null;
+    let leHaDadoLike: boolean = false;
+    idUsuario$.subscribe(id => {
+      idUsuario = id;
+    });
+    if (idUsuario) {
+      mensaje.lesGusta?.forEach((like: Usuario) => {
+        if (like.id === idUsuario) {
+          leHaDadoLike = true;
+        }
+      });
+
+      if (!leHaDadoLike) {
+        this.darLike(idUsuario, mensaje.id).subscribe({
+          next: (like) => {
+            console.log("Like: ", like);
+          }
+        })
+      } else {
+        this.quitarLike(idUsuario, mensaje.id).subscribe({
+          next: (like) => {
+            console.log("Like borrado: ", like);
+          }
+        })
+      }
+
+    }
+  }
+
 }
