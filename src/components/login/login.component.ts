@@ -45,12 +45,13 @@ export class LoginComponent {
           console.log("IdUsuario: ", this.authService.obtenerIdUsuarioDeToken(token));
           console.log("Username: ", this.authService.obtenerNombreUsuarioDeToken(token));
         }
-        if (response.includes("incorrectos")) {
+        if (response.includes("incorrect")) {
           this.error = response;
         }
 
       },
       error: (error) => {
+        this.error = "Error al iniciar sesión. Inténtalo mas tarde";
         console.log("Error: ", error);
       },
       complete: () => {

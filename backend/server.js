@@ -9,6 +9,7 @@ const {join, extname} = require("node:path");
 const multer = require('multer');
 const bcrypt = require('bcrypt')
 require('dotenv').config();
+const verificarToken = require('./middlewareAutenticacion');
 
 
 const app = express();
@@ -148,7 +149,7 @@ app.post('/usuarios/gestionar_foto_perfil', (req, res, next) => {
 
 
 // Ruta para actualizar usuario
-app.put('/usuarios/actualizar', async (req, res) => {
+app.put('/usuarios/actualizar', verificarToken, async (req, res) => {
   const {idUsuario, nombre, username, password} = req.body;
   try {
     // Si se proporciona una nueva contraseña, encriptarla

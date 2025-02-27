@@ -46,7 +46,14 @@ export class UsuarioService {
   }
 
   actualizarUsuario(idUsuario: number, nombre: string, username: string, password?: string): Observable<UsuarioActualizado> {
-    return this.http.put<UsuarioActualizado>(this.apiUrl + "/actualizar", {idUsuario, nombre, username, password}).pipe(
+    let headers = new HttpHeaders({
+      'Authorization' : 'Bearer '+ localStorage.getItem('authToken')
+    });
+    // headers.set('Authorization', "Bearer "+localStorage.getItem('authToken')!);
+    console.log(headers);
+    console.log(localStorage.getItem('authToken'));
+
+    return this.http.put<UsuarioActualizado>(this.apiUrl + "/actualizar", {idUsuario, nombre, username, password}, {headers: headers}).pipe(
       tap(res => {
         console.log(res);
         localStorage.removeItem('authToken');
