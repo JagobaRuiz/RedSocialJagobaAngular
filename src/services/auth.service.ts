@@ -43,9 +43,9 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  estaLogeado(): Observable<boolean> {
-    return this.authToken$.pipe(map(token => !!token)); //Recibimos el token y lo transformamos en booleano según si hay token o no
-   // return !!localStorage.getItem('authToken');
+  estaLogeado(): boolean {
+    // return this.authToken$.pipe(map(token => !!token)); //Recibimos el token y lo transformamos en booleano según si hay token o no
+   return !!localStorage.getItem('authToken');
   }
 
   obtenerToken(): Observable<string | null> {

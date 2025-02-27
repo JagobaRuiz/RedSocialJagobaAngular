@@ -28,6 +28,7 @@ import { map, switchMap } from 'rxjs/operators';
 export class PerfilComponent implements OnInit {
   formularioActualizarPerfil!: FormGroup;
   error: string = "";
+  mensaje: string = "";
   usuarioActual!: Usuario;
   authToken$: Observable<string | null>;
   idUsuario$: Observable<number | null>;
@@ -106,16 +107,18 @@ export class PerfilComponent implements OnInit {
           this.usuarioService.gestionarFotoPerfil(formData).subscribe({
             next: (response) => {
               console.log(response);
+              this.mensaje = "Perfil actualizado correctamente.";
             }
           })
         }
+        this.mensaje = "Perfil actualizado correctamente.";
         console.log("usuario actualizado: ", usuarioActualizado);
       },
       error: (error) => {
-        if (error.error.error.errno === 19){
-          if (error.error.errorMessage.includes("username")) {
+        if (error.error?.error?.errno === 19){
             this.error = "Nombre de usuario repetido o no disponible";
-          }
+        } else {
+          this.error = "Error al actualizar el perfil";
         }
         console.log("Error devuelto: ", error.error);
       }

@@ -7,7 +7,9 @@ const moment = require('moment-timezone');
 const fs = require('fs');
 const {join, extname} = require("node:path");
 const multer = require('multer');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt')
+require('dotenv').config();
+
 
 const app = express();
 const port = 3000;
@@ -173,7 +175,7 @@ app.put('/usuarios/actualizar', async (req, res) => {
         res.status(400).json({"errorMessage": err.message, "error": err});
         return;
       } else {
-        token = jwt.sign({ idUsuario: idUsuario, username: username }, secretKey, { expiresIn: '1h' });
+        token = jwt.sign({ idUsuario: idUsuario, username: username }, process.env.TOKEN_SECRET_KEY, { expiresIn: '1h' });
       }
 
       res.json({
@@ -181,9 +183,7 @@ app.put('/usuarios/actualizar', async (req, res) => {
         "usuario": {
           id: idUsuario,
           nombre: nombre,
-          username: username,
-          email: null,
-          password: null // Evita enviar la contraseña en respuestas JSON en producción
+          username: username
         }
       });
     });
@@ -191,12 +191,6 @@ app.put('/usuarios/actualizar', async (req, res) => {
     res.status(500).json({"errorMessage": err.message, "error": err});
   }
 });
-
-//Función para gestionar imágenes de perfil
-
-const gestionarImagenPerfil = (imagen) => {
-
-}
 
 // Ruta para login por username
 app.post('/login_username', (req, res) => {
@@ -213,7 +207,7 @@ app.post('/login_username', (req, res) => {
       bcrypt.compare(password, row.password, (err, result) => {
         if (result) {
           // Crear y firmar el token JWT
-          const token = jwt.sign({ idUsuario: row.id, username: row.username }, secretKey, { expiresIn: '1h' });
+          const token = jwt.sign({ idUsuario: row.id, username: row.username }, process.env.TOKEN_SECRET_KEY, { expiresIn: '1h' });
           res.json({
             message: 'Login exitoso',
             token: token
