@@ -26,7 +26,6 @@ export class AuthService {
   iniciarSesion(username: string, password: string): Observable<string> {
     return this.http.post<{ token: string }>(this.apiUrl + "/login_username", { username, password }).pipe(
       tap(response => {
-        console.log(response);
         localStorage.setItem('authToken', response.token);
         this.authTokenSubject.next(response.token);
         this.sesionService.monitorearSesion();
@@ -43,7 +42,6 @@ export class AuthService {
     localStorage.removeItem('authToken');
     this.authTokenSubject.next(null);
     this.sesionService.pararMonitoreoSesion();
-    //this.router.navigate(['/login']);
   }
 
   tokenEsValido(): boolean {
@@ -78,7 +76,6 @@ export class AuthService {
   }
 
   actualizarToken(token: string): void {
-    console.log(token);
     localStorage.setItem('authToken', token);
     this.authTokenSubject.next(token);
   }

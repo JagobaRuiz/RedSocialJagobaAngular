@@ -732,8 +732,6 @@ app.post('/mensajes/likes/dar', verificarToken ,(req, res) => {
   const sql = 'INSERT INTO Likes (id_usuario, id_mensaje) VALUES (?, ?)';
   const params = [idUsuario, idMensaje];
 
-  console.log(req.body);
-
   db.run(sql, params, function(err) {
     if (err) {
       res.status(400).json({"errorMessage": err.message, "error": err});
@@ -754,8 +752,6 @@ app.post('/mensajes/likes/quitar', verificarToken, (req, res) => {
   const { idUsuario, idMensaje} = req.body;
   const sql = 'DELETE FROM Likes WHERE id_usuario = ? AND id_mensaje = ?';
   const params = [idUsuario, idMensaje];
-
-  console.log(req.body);
 
   db.run(sql, params, function(err) {
     if (err) {

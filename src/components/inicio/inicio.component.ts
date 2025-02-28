@@ -8,7 +8,6 @@ import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/comm
 import {Mensaje} from '../../models/mensaje.model';
 import {MensajeService} from '../../services/mensaje.service';
 import {Usuario} from '../../models/usuario.model';
-import {format} from 'date-fns';
 
 @Component({
   selector: 'app-inicio',
@@ -54,13 +53,8 @@ export class InicioComponent {
 
     if (idUsuario) {
       this.mensajeService.publicarMensaje(this.formularioPublicarMensaje.get('texto')?.value, idUsuario).subscribe({
-        next: (mensaje: Mensaje) => {
-          // console.log("Mensaje publicado: ", mensaje);
-          // this.mensajeService.cargarMensajes();
-        },
-        error: (error) => {
-          console.log("Error: ", error);
-        }
+        next: (mensaje: Mensaje) => {},
+        error: (error) => {}
       });
     }
 

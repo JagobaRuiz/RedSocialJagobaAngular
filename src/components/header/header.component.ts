@@ -12,7 +12,6 @@ import {map} from 'rxjs/operators';
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent implements OnInit {
-  // username: string ='';
   haySesionIniciada: boolean;
   authToken$: Observable<string | null>;
   username$: Observable<string | null>;
@@ -21,13 +20,12 @@ export class HeaderComponent implements OnInit {
   constructor(private router: Router, private authService: AuthService) {
    this.authToken$ = this.authService.authToken$;
    this.username$ = this.authToken$.pipe(
-      map(token => token ? this.authService.obtenerNombreUsuarioDeToken(token) : null) // obtiene el token y
-      //el pipe lo encadena con el map para transformarlo y preguntar en la condición ternaria si el token tiene valor y
-      // si lo tiene llama al metodo obtenerNombreUsuarioDeToken y sino devuelve null
+      map(token => token ? this.authService.obtenerNombreUsuarioDeToken(token) : null) /* obtiene el token y
+      el pipe lo encadena con el map para transformarlo y preguntar en la condición ternaria si el token tiene valor y
+      si lo tiene llama al metodo obtenerNombreUsuarioDeToken y sino devuelve null*/
     );
    if (!this.authService.tokenEsValido()) {
      this.authService.cerrarSesion();
-     console.log('Sesión (en teoría) cerrada');
      this.haySesionIniciada = false;
    } else {
      this.haySesionIniciada = true;
@@ -36,7 +34,6 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit(): void {
     this.subscription = this.authToken$.subscribe(token => {
-      // this.haySesionIniciada = !!token;
       this.username$ = this.authToken$.pipe(
         map(token => token ? this.authService.obtenerNombreUsuarioDeToken(token) : null)
       );
@@ -61,6 +58,5 @@ export class HeaderComponent implements OnInit {
 
   cerrarSesion() {
     this.authService.cerrarSesion();
-    console.log("Token después de cerrar sesión: ", this.authService.obtenerToken());
   }
 }

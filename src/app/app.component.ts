@@ -18,30 +18,8 @@ import {AlertaComponent} from '../components/alerta/alerta.component';
 })
 export class AppComponent implements OnInit {
   title = 'RedSocialJagobaAngular';
-  haySesionIniciada;
-
-  constructor(private authService: AuthService) {
-    if (!this.authService.tokenEsValido()) {
-      this.authService.cerrarSesion();
-      console.log('Sesión (en teoría) cerrada');
-      this.haySesionIniciada = false;
-    } else {
-      this.haySesionIniciada = true;
-    }
-  }
 
   ngOnInit(): void {
-    // this.usuarioService.getUsuarios().subscribe(
-    //   res => {
-    //     console.log(res);
-    //   }
-    // )
-    //
-    // this.usuarioService.getUsuarioPorId(1).subscribe(
-    //   res => {
-    //     console.log(res);
-    //   }
-    // )
   }
 }
 

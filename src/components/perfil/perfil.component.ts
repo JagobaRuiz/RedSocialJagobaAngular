@@ -91,11 +91,7 @@ export class PerfilComponent implements OnInit {
   actualizar() {
     this.usuarioActual.nombre = this.formularioActualizarPerfil.get('nombre')?.value;
     this.usuarioActual.username = this.formularioActualizarPerfil.get('username')?.value;
-    // this.usuarioActual.email = this.formularioActualizarPerfil.get('email')?.value;
     this.usuarioActual.password = this.formularioActualizarPerfil.get('password')?.value;
-
-    console.log("Password: ", this.formularioActualizarPerfil.get('password')?.value);
-    console.log("Id: ", this.usuarioActual.id);
 
     this.usuarioService.actualizarUsuario(this.usuarioActual.id, this.formularioActualizarPerfil.get('nombre')?.value, this.formularioActualizarPerfil.get('username')?.value, this.formularioActualizarPerfil.get('password')?.value).subscribe({
       next: (usuarioActualizado) => {
@@ -106,13 +102,11 @@ export class PerfilComponent implements OnInit {
 
           this.usuarioService.gestionarFotoPerfil(formData).subscribe({
             next: (response) => {
-              console.log(response);
               this.mensaje = "Perfil actualizado correctamente.";
             }
           })
         }
         this.mensaje = "Perfil actualizado correctamente.";
-        console.log("usuario actualizado: ", usuarioActualizado);
       },
       error: (error) => {
         if (error.error?.error?.errno === 19){
@@ -120,7 +114,6 @@ export class PerfilComponent implements OnInit {
         } else {
           this.error = "Error al actualizar el perfil";
         }
-        console.log("Error devuelto: ", error.error);
       }
     })
   }

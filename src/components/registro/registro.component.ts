@@ -47,7 +47,6 @@ export class RegistroComponent implements OnInit {
   comprobarImagen(event: any): void {
    if (event.target.files.length > 0) {
       this.foto = event.target.files[0];
-      console.log("comprobarImagen");
     }
   }
 
@@ -58,22 +57,6 @@ export class RegistroComponent implements OnInit {
       this.username = this.formularioRegistro.get("username")?.value;
       this.password = this.formularioRegistro.get("password")?.value;
       this.email = this.formularioRegistro.get("email")?.value;
-      //this.foto = this.formularioRegistro.get("imagen")?.value;
-
-      console.log('imagen.value: ', this.formularioRegistro.get("imagen")?.value);
-      const formData = new FormData();
-      formData.append('nombre', this.nombre);
-      formData.append('username', this.username);
-      formData.append('email', this.email);
-      formData.append('password', this.password);
-      // if (this.foto) {
-      //   formData.append('foto', this.foto, this.foto.name);
-      // }
-
-      console.log(this.foto);
-      for (var key of formData.entries()) {
-        console.log(key[0] + ', ' + key[1]);
-      }
 
       this.usuarioService.addUsuario(this.nombre, this.username, this.email, this.password).subscribe({
         next: (response) => {
@@ -84,11 +67,9 @@ export class RegistroComponent implements OnInit {
           }
           this.usuarioService.gestionarFotoPerfil(formDataFoto).subscribe({
             next: (response) => {
-              console.log(response);
               this.router.navigate(['login']);
             }
           });
-          console.log('Usuario registrado: ', response);
         },
         error: (error) => {
           if (error.error.error.errno === 19){
@@ -98,15 +79,10 @@ export class RegistroComponent implements OnInit {
                     this.error = "Nombre de usuario repetido o no disponible";
                   }
                 }
-                console.log(error.error.errorMessage);
-                console.log("Mensaje error: ", this.error);
         },
         complete: () => {
-          console.log('Request complete');
         }
       });
     }
-
-      // console.log("Imagen: ", this.formularioRegistro.get("imagen"));
-    }
+  }
 }

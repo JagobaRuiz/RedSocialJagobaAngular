@@ -8,7 +8,7 @@ import {MensajeService} from '../../services/mensaje.service';
 import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Usuario} from '../../models/usuario.model';
-import {format} from 'date-fns';
+
 
 @Component({
   selector: 'app-detalle-mensaje',
@@ -35,11 +35,9 @@ export class DetalleMensajeComponent {
   constructor(private router: Router, private authService: AuthService, private mensajeService: MensajeService) {
     const navigation = this.router.getCurrentNavigation();
     this.mensaje = navigation?.extras?.state?.['data'];
-    console.log("mensaje", this.mensaje);
     this.mensajeService.cargarRespuestas(this.mensaje.id);
     this.respuestas$ = this.mensajeService.obtenerRespuestas();
     this.authToken$ = this.authService.authToken$;
-    //this.mensajeConRespuestas$ = this.mensajeService.obtenerMensajes();
     this.username$ = this.authToken$.pipe(
       map(token => token ? this.authService.obtenerNombreUsuarioDeToken(token) : null)
     );
@@ -49,7 +47,6 @@ export class DetalleMensajeComponent {
     this.formularioResponder = new FormGroup({
       texto: new FormControl('', [Validators.required])
     });
-    // this.respuestas$ = this.mensajeService.respuestas$;
   }
 
   responder() {
@@ -61,12 +58,9 @@ export class DetalleMensajeComponent {
     if (idUsuario) {
       this.mensajeService.publicarMensaje(this.formularioResponder.get('texto')?.value, idUsuario, this.mensaje.id).subscribe({
         next: (mensaje: Mensaje) => {
-          console.log("Mensaje publicado: ", mensaje);
           this.mensajeService.cargarRespuestas(this.mensaje.id);
         },
-        error: (error) => {
-          console.log("Error: ", error);
-        }
+        error: (error) => {}
       });
     }
   }
@@ -94,15 +88,11 @@ export class DetalleMensajeComponent {
 
       if (!leHaDadoLike) {
         this.mensajeService.darLike(idUsuario, mensaje.id).subscribe({
-          next: (like) => {
-            console.log("Like: ", like);
-          }
+          next: (like) => {}
         })
       } else {
         this.mensajeService.quitarLike(idUsuario, mensaje.id).subscribe({
-          next: (like) => {
-            console.log("Like borrado: ", like);
-          }
+          next: (like) => {}
         })
       }
     }

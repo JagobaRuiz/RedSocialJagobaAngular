@@ -17,45 +17,28 @@ export class UsuarioService {
   constructor(private http: HttpClient, private authService: AuthService) { }
 
   getUsuarios(): Observable<Usuario[]> {
-    //console.log(this.http.get<any[]>(this.apiUrl));
     return this.http.get<Usuario[]>(this.apiUrl);
   }
 
   getUsuarioPorId(id: number): Observable<Usuario> {
-    //console.log(this.http.get<any[]>(this.apiUrl));
     return this.http.get<Usuario>(this.apiUrl + "/" + id);
   }
 
   addUsuario(nombre: string, username: string, email: string, password: string): Observable<Usuario> {
-    // const formData: FormData = new FormData();
-    // console.log(foto);
-    // if (foto) {
-    //   formData.append('foto', foto);
-    //   for (let key of formData.entries()) {
-    //     console.log(key[0] + ', ' + key[1]);
-    //   }
-    // }
-
-    // const headers = new HttpHeaders();
-    // headers.append('Content-Type', 'multipart/form-data');
-    return this.http.post<Usuario>(this.apiUrl, {nombre, username, email, password}, /*{ headers: headers }*/);
+    return this.http.post<Usuario>(this.apiUrl, {nombre, username, email, password});
   }
 
   gestionarFotoPerfil(formData: FormData): Observable<string> {
-    return this.http.post<string>(this.apiUrl + '/gestionar_foto_perfil', formData, /*{ headers: headers }*/);
+    return this.http.post<string>(this.apiUrl + '/gestionar_foto_perfil', formData);
   }
 
   actualizarUsuario(idUsuario: number, nombre: string, username: string, password?: string): Observable<UsuarioActualizado> {
     let headers = new HttpHeaders({
       'Authorization' : 'Bearer '+ localStorage.getItem('authToken')
     });
-    // headers.set('Authorization', "Bearer "+localStorage.getItem('authToken')!);
-    console.log(headers);
-    console.log(localStorage.getItem('authToken'));
 
     return this.http.put<UsuarioActualizado>(this.apiUrl + "/actualizar", {idUsuario, nombre, username, password}, {headers: headers}).pipe(
       tap(res => {
-        console.log(res);
         localStorage.removeItem('authToken');
         localStorage.setItem('authToken', res.token);
         this.authService.actualizarToken(res.token);

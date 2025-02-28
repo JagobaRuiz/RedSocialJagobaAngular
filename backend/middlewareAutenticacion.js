@@ -13,7 +13,6 @@ function validarToken(req, res, next) {
       return res.status(403).json({ error: 'Token no válido o caducado' });
     }
     req.user = user;
-    console.log(user);
     next();
   });
 }
