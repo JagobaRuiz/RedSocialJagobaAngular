@@ -39,51 +39,23 @@ comando:
 ```bash
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```
+## FUNCIONAMIENTO:
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Ésta aplicación es una red social básica.
+Tiene:
 
-## Code scaffolding
+* Registro: donde dar el alta al nuevo usuario
+* Login: para iniciar sesión
+* Inicio: lista de mensajes, aquí al estar logeado se permite
+  dar like, y escribir mensajes.
+* Detalle del mensaje: al hacer click en un mensaje se accede
+  a otra pantalla en la cual se ven las respuestas y mas detalles de ese mensaje.
+* Perfil: se puede modificar el nombre, el username, la contraseña y la foto de perfil.
+* Header: aquí se puede ir a cualquier pantalla y cerrar sesión.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+En cuanto al backend:
+* La BDD es un archivo .db hecho con MySQLite y todas las interacciones están hechas con Sqlite3
+* El backend está hecho con NodeJS y con Express.
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Otros:
+* La sesión se cierra sola cuando caduca el token (en 24h por defecto).
