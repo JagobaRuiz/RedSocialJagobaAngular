@@ -215,7 +215,7 @@ app.post('/login_username', (req, res) => {
       bcrypt.compare(password, row.password, (err, result) => {
         if (result) {
           // Crear y firmar el token JWT
-          const token = jwt.sign({ idUsuario: row.id, username: row.username }, process.env.TOKEN_SECRET_KEY, { expiresIn: '1h' });
+          const token = jwt.sign({ idUsuario: row.id, username: row.username }, process.env.TOKEN_SECRET_KEY, { expiresIn: '30s' });
           res.json({
             message: 'Login exitoso',
             token: token

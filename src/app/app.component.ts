@@ -6,18 +6,28 @@ import {FooterComponent} from '../components/footer/footer.component';
 import {BrowserModule} from '@angular/platform-browser';
 import {CommonModule} from '@angular/common';
 import {ReactiveFormsModule} from '@angular/forms';
+import {AuthService} from '../services/auth.service';
+import {AlertaComponent} from '../components/alerta/alerta.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HeaderComponent, FooterComponent, ReactiveFormsModule, CommonModule],
+  imports: [RouterOutlet, HeaderComponent, FooterComponent, ReactiveFormsModule, CommonModule, AlertaComponent],
   standalone: true,
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
   title = 'RedSocialJagobaAngular';
+  haySesionIniciada;
 
-  constructor(private usuarioService: UsuarioService) {
+  constructor(private authService: AuthService) {
+    if (!this.authService.tokenEsValido()) {
+      this.authService.cerrarSesion();
+      console.log('Sesión (en teoría) cerrada');
+      this.haySesionIniciada = false;
+    } else {
+      this.haySesionIniciada = true;
+    }
   }
 
   ngOnInit(): void {

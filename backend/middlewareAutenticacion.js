@@ -10,9 +10,10 @@ function validarToken(req, res, next) {
 
   jwt.verify(token, process.env.TOKEN_SECRET_KEY, (err, user) => {
     if (err) {
-      return res.status(403).json({ error: 'Token no válido.' });
+      return res.status(403).json({ error: 'Token no válido o caducado' });
     }
     req.user = user;
+    console.log(user);
     next();
   });
 }

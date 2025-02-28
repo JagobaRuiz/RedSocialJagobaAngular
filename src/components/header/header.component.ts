@@ -13,7 +13,7 @@ import {map} from 'rxjs/operators';
 })
 export class HeaderComponent implements OnInit {
   // username: string ='';
-  haySesionIniciada: boolean = false;
+  haySesionIniciada: boolean;
   authToken$: Observable<string | null>;
   username$: Observable<string | null>;
   private subscription!: Subscription;
@@ -25,11 +25,18 @@ export class HeaderComponent implements OnInit {
       //el pipe lo encadena con el map para transformarlo y preguntar en la condición ternaria si el token tiene valor y
       // si lo tiene llama al metodo obtenerNombreUsuarioDeToken y sino devuelve null
     );
+   if (!this.authService.tokenEsValido()) {
+     this.authService.cerrarSesion();
+     console.log('Sesión (en teoría) cerrada');
+     this.haySesionIniciada = false;
+   } else {
+     this.haySesionIniciada = true;
+   }
   }
 
   ngOnInit(): void {
     this.subscription = this.authToken$.subscribe(token => {
-      this.haySesionIniciada = !!token;
+      // this.haySesionIniciada = !!token;
       this.username$ = this.authToken$.pipe(
         map(token => token ? this.authService.obtenerNombreUsuarioDeToken(token) : null)
       );
