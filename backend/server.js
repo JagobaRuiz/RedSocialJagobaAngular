@@ -18,6 +18,8 @@ const secretKey = 'JagobaX1234';
 
 app.use(bodyParser.json());
 app.use(cors());
+// Servir archivos desde la carpeta 'uploads/profile_images'
+app.use('/profile_images', express.static(join(__dirname, '/profile_images')));
 
 // Conexión a la base de datos SQLite
 const db = new sqlite3.Database('../bdd.db', sqlite3.OPEN_READWRITE, (err) => {
@@ -81,7 +83,7 @@ app.get('/usuarios/:id', (req, res) => {
 // Configuración de multer para gestionar las fotos de perfil
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, join(__dirname, '../src/assets/profile_images'));
+    cb(null, join(__dirname, '/profile_images'));
   },
   filename: function (req, file, cb) {
     const customFileName = req.body.idUsuario+'.jpg';
@@ -139,9 +141,9 @@ app.post('/usuarios/gestionar_foto_perfil', (req, res, next) => {
   const { idUsuario } = req.body;
 
   if (!req.file) {
-    const defaultFilePath = join(__dirname, '../src/assets/profile_images/sin_foto.jpg');
+    const defaultFilePath = join(__dirname, '/profile_images/sin_foto.jpg');
     const newFileName = `${idUsuario}.jpg`;
-    const newFilePath = join(__dirname, '../src/assets/profile_images', newFileName);
+    const newFilePath = join(__dirname, '/profile_images', newFileName);
 
     fs.copyFile(defaultFilePath, newFilePath, (err) => {
       if (err) {
@@ -215,7 +217,7 @@ app.post('/login_username', (req, res) => {
       bcrypt.compare(password, row.password, (err, result) => {
         if (result) {
           // Crear y firmar el token JWT
-          const token = jwt.sign({ idUsuario: row.id, username: row.username }, process.env.TOKEN_SECRET_KEY, { expiresIn: '30s' });
+          const token = jwt.sign({ idUsuario: row.id, username: row.username }, process.env.TOKEN_SECRET_KEY, { expiresIn: '1h' });
           res.json({
             message: 'Login exitoso',
             token: token
