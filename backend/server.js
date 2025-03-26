@@ -65,11 +65,11 @@ app.get('/usuarios/:id', (req, res) => {
     }
     if (row) {
       res.json({
-          id: row.id,
-          nombre: row.nombre,
-          username: row.username,
-          email: row.email,
-          password: null
+        id: row.id,
+        nombre: row.nombre,
+        username: row.username,
+        email: row.email,
+        password: null
       });
     } else {
       res.status(404).json({"error": "Usuario no encontrado"});
@@ -215,8 +215,7 @@ app.post('/login_username', (req, res) => {
       bcrypt.compare(password, row.password, (err, result) => {
         if (result) {
           // Crear y firmar el token JWT
-          const token = jwt.sign({ idUsuario: row.id, username: row.username }, process.env.TOKEN_SECRET_KEY, { expiresIn: '1h' +
-              '' });
+          const token = jwt.sign({ idUsuario: row.id, username: row.username }, process.env.TOKEN_SECRET_KEY, { expiresIn: '1h' });
           res.json({
             message: 'Login exitoso',
             token: token
@@ -768,9 +767,6 @@ app.post('/mensajes/likes/quitar', verificarToken, (req, res) => {
     });
   });
 });
-
-
-
 
 
 // Iniciar el servidor
