@@ -59,3 +59,5 @@ En cuanto al backend:
 
 Otros:
 * La sesión se cierra sola cuando caduca el token (en 24h por defecto).
+
+
