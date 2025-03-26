@@ -62,7 +62,6 @@ export class InicioComponent {
   }
 
   obtenerTiempoVidaMensaje(fechaPublicacion: Date): string {
-    // return this.mensajeService.obtenerTiempoVida(fechaPublicacion);
     fechaPublicacion = new Date(fechaPublicacion);
     const fechaPublicacionMilis = fechaPublicacion.getTime();
     const tiempoDeVidaMilis = Date.now() - fechaPublicacionMilis;

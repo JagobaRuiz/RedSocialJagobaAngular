@@ -8,6 +8,7 @@ import {MensajeService} from '../../services/mensaje.service';
 import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Usuario} from '../../models/usuario.model';
+import {format} from 'date-fns';
 
 
 @Component({
@@ -66,7 +67,27 @@ export class DetalleMensajeComponent {
   }
 
   obtenerTiempoVida(fechaPublicacion: Date): string {
-   return this.mensajeService.obtenerTiempoVida(fechaPublicacion);
+    fechaPublicacion = new Date(fechaPublicacion);
+    const fechaPublicacionMilis = fechaPublicacion.getTime();
+    const tiempoDeVidaMilis = Date.now() - fechaPublicacionMilis;
+    const segundos = Math.floor((tiempoDeVidaMilis / 1000) % 60);
+    const minutos = Math.floor((tiempoDeVidaMilis / (1000 * 60)) % 60);
+    const horas =  Math.floor((tiempoDeVidaMilis / (1000 * 60 * 60)) % 24);
+    const dias = Math.floor(tiempoDeVidaMilis / (1000 * 60 * 60 * 24));
+
+    const fechaPublicacionFormateada = format(fechaPublicacion, 'dd MMM yy');
+
+    if (segundos <= 59 && minutos === 0 && horas === 0 && dias === 0 ) {
+      return segundos + 's';
+    } else if (minutos <= 59 && horas === 0 && dias === 0) {
+      return minutos + 'm';
+    } else if (horas <= 59 && dias === 0) {
+      return horas + 'h';
+    } else if (dias <= 6) {
+      return dias + 'd';
+    } else {
+      return fechaPublicacionFormateada;
+    }
   }
 
   irDetalle(mensaje: Mensaje) {
