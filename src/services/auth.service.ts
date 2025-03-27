@@ -1,10 +1,11 @@
-import { Injectable } from '@angular/core';
+import {Injectable, Injector} from '@angular/core';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import { Router } from '@angular/router';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { jwtDecode } from 'jwt-decode';
 import {SesionService} from './sesion.service';
+import {UsuarioService} from './usuario.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,11 +17,15 @@ export class AuthService {
   // Lo que hace es que cada vez que se le pase al authTokenSubject un valor con .next('valor') se actualiza el valor de
   //authToken$, que está a la escucha.
 
-  constructor(private http: HttpClient, private router: Router, private sesionService: SesionService) {
+  constructor(private http: HttpClient, private router: Router, private sesionService: SesionService, private injector: Injector,) {
     const token = localStorage.getItem('authToken');
     if (token) {
       this.authTokenSubject.next(token);
     }
+  }
+
+  private get usuarioService() {
+    return this.injector.get(UsuarioService); // Obtener AuthService solo cuando sea necesario
   }
 
   iniciarSesion(username: string, password: string): Observable<string> {
@@ -40,6 +45,7 @@ export class AuthService {
 
   cerrarSesion(): void {
     localStorage.removeItem('authToken');
+    this.usuarioService.borrarUrlImagen();
     this.authTokenSubject.next(null);
     this.sesionService.pararMonitoreoSesion();
   }

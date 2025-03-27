@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
 import {Router} from '@angular/router';
@@ -9,6 +9,7 @@ import {Mensaje} from '../../models/mensaje.model';
 import {MensajeService} from '../../services/mensaje.service';
 import {Usuario} from '../../models/usuario.model';
 import {format} from 'date-fns';
+import {UsuarioService} from '../../services/usuario.service';
 
 @Component({
   selector: 'app-inicio',
@@ -24,14 +25,15 @@ import {format} from 'date-fns';
   templateUrl: './inicio.component.html',
   styleUrl: './inicio.component.scss'
 })
-export class InicioComponent {
+export class InicioComponent implements OnInit {
   authToken$: Observable<string | null>;
   username$: Observable<string | null>;
   idUsuario$: Observable<number | null>;
-  mensajes$: Observable<Mensaje[] | null>;
+  mensajes$!: Observable<Mensaje[] | null>;
   formularioPublicarMensaje: FormGroup;
+  urlImagen: string = '';
 
-  constructor(private router: Router, private authService: AuthService, private mensajeService: MensajeService) {
+  constructor(private router: Router, private authService: AuthService, private mensajeService: MensajeService, private usuarioService: UsuarioService) {
     this.authToken$ = this.authService.authToken$;
     this.mensajes$ = this.mensajeService.obtenerMensajes();
     this.username$ = this.authToken$.pipe(
@@ -43,6 +45,17 @@ export class InicioComponent {
 
     this.formularioPublicarMensaje = new FormGroup({
       texto: new FormControl(null, [Validators.required])
+    })
+  }
+
+  ngOnInit(): void {
+    this.usuarioService.urlImagen$.subscribe((nuevaUrl) => {
+      if (nuevaUrl) {
+        this.urlImagen = nuevaUrl;
+      }
+      // else {
+      //   this.urlImagen = 'http://localhost:3000/profile_images/';
+      // }
     });
   }
 

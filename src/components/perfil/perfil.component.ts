@@ -7,7 +7,7 @@ import {
   AbstractControl,
   ValidationErrors
 } from '@angular/forms';
-import {NgIf, NgOptimizedImage} from '@angular/common';
+import {AsyncPipe, NgIf, NgOptimizedImage} from '@angular/common';
 import { Usuario } from '../../models/usuario.model';
 import { UsuarioService } from '../../services/usuario.service';
 import { Observable } from 'rxjs';
@@ -34,6 +34,7 @@ export class PerfilComponent implements OnInit {
   idUsuario$: Observable<number | null>;
   idUsuario!: number;
   foto!: File;
+  ultimaActualizacion: number = Date.now();
 
   constructor(private usuarioService: UsuarioService, private router: Router, private authService: AuthService) {
     this.authToken$ = this.authService.authToken$;
@@ -102,6 +103,9 @@ export class PerfilComponent implements OnInit {
 
           this.usuarioService.gestionarFotoPerfil(formData).subscribe({
             next: (response) => {
+              const nuevaUrl = 'http://localhost:3000/profile_images/' + this.usuarioActual.id +'.jpg?nocache=' +Date.now();
+              this.usuarioService.actualizarImagen(nuevaUrl); // Notifica el cambio de imagen
+              this.actualizarImagen();
               this.mensaje = "Perfil actualizado correctamente.";
             }
           })
@@ -116,5 +120,13 @@ export class PerfilComponent implements OnInit {
         }
       }
     })
+  }
+
+  obtenerUrlImagen(): string {
+    return 'http://localhost:3000/profile_images/' + this.idUsuario+ '.jpg?nocache=' + this.ultimaActualizacion;
+  }
+
+  actualizarImagen(): void {
+    this.ultimaActualizacion = Date.now();
   }
 }

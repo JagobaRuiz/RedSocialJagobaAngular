@@ -41,7 +41,8 @@ export class HeaderComponent implements OnInit {
   }
 
   irInicio() {
-    this.router.navigate(['inicio']);
+    // this.router.navigate(['inicio']);
+    this.router.navigateByUrl('/inicio');
   }
 
   irLogin() {
@@ -57,6 +58,7 @@ export class HeaderComponent implements OnInit {
   }
 
   cerrarSesion() {
+    window.location.reload();
     this.authService.cerrarSesion();
   }
 }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
@@ -9,6 +9,7 @@ import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/comm
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Usuario} from '../../models/usuario.model';
 import {format} from 'date-fns';
+import {UsuarioService} from '../../services/usuario.service';
 
 
 @Component({
@@ -25,15 +26,16 @@ import {format} from 'date-fns';
   templateUrl: './detalle-mensaje.component.html',
   styleUrl: './detalle-mensaje.component.scss'
 })
-export class DetalleMensajeComponent {
+export class DetalleMensajeComponent implements OnInit {
   authToken$: Observable<string | null>;
   username$: Observable<string | null>;
   idUsuario$: Observable<number | null>;
   mensaje: Mensaje;
   formularioResponder: FormGroup;
   respuestas$: Observable<Mensaje[] | null>;
+  urlImagen: string = '';
 
-  constructor(private router: Router, private authService: AuthService, private mensajeService: MensajeService) {
+  constructor(private router: Router, private authService: AuthService, private mensajeService: MensajeService, private usuarioService: UsuarioService) {
     const navigation = this.router.getCurrentNavigation();
     this.mensaje = navigation?.extras?.state?.['data'];
     this.mensajeService.cargarRespuestas(this.mensaje.id);
@@ -47,6 +49,17 @@ export class DetalleMensajeComponent {
     );
     this.formularioResponder = new FormGroup({
       texto: new FormControl('', [Validators.required])
+    });
+  }
+
+  ngOnInit(): void {
+    this.usuarioService.urlImagen$.subscribe((nuevaUrl) => {
+      if (nuevaUrl) {
+        this.urlImagen = nuevaUrl;
+      }
+      // else {
+      //   this.urlImagen = 'http://localhost:3000/profile_images/';
+      // }
     });
   }
 
@@ -130,6 +143,8 @@ export class DetalleMensajeComponent {
     });
     return leHaDadoLike;
   }
+
+
 
 }
 

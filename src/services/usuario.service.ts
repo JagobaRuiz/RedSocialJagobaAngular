@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
-import { Observable } from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {Usuario} from '../models/usuario.model';
 import {tap} from 'rxjs/operators';
 import {AuthService} from './auth.service';
@@ -11,6 +11,8 @@ import {UsuarioActualizado} from '../models/usuario-actualizado.model';
   providedIn: 'root'
 })
 export class UsuarioService {
+  private urlImagenSubject = new BehaviorSubject<string | null>(''); // Almacena la URL de la imagen
+  urlImagen$ = this.urlImagenSubject.asObservable(); // Observable para que otros componentes se suscriban
 
   private apiUrl = 'http://localhost:3000/usuarios';
 
@@ -44,5 +46,13 @@ export class UsuarioService {
         this.authService.actualizarToken(res.token);
       }
     ));
+  }
+
+  actualizarImagen(url: string): void {
+    this.urlImagenSubject.next(url); // Actualiza la URL de la imagen
+  }
+
+  borrarUrlImagen(): void {
+    this.urlImagenSubject.next(null); // Actualiza la URL de la imagen
   }
 }

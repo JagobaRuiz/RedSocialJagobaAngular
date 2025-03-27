@@ -2,8 +2,8 @@
   <div class="list-group-item list-group-item-action">
     <div class="row">
       <div class="col-auto">
-        <img class="rounded-circle" [ngSrc]="'assets/profile_images/' + mensaje.usuario.id + '.jpg'"
-             width="50" height="50">
+        <img *ngIf="(idUsuario$ | async) === mensaje.usuario.id && this.urlImagen" alt="" class="rounded-circle" [ngSrc]=urlImagen width="50" height="50">
+        <img *ngIf="(idUsuario$ | async) !== mensaje.usuario.id || (idUsuario$ | async) === mensaje.usuario.id && !this.urlImagen" alt="" class="rounded-circle" [ngSrc]="'http://localhost:3000/profile_images/' + mensaje.usuario.id + '.jpg'" width="50" height="50">
       </div>
       <div class="col">
         <div class="d-flex w-100 justify-content-between">
@@ -28,7 +28,8 @@
   <div *ngFor="let respuesta of (respuestas$ | async)" class="list-group-item list-group-item-action respuesta">
     <div class="row">
       <div class="col-auto">
-        <img class="rounded-circle" [ngSrc]="'http://localhost:3000/profile_images/' + mensaje.usuario.id + '.jpg'" width="50" height="50">
+        <img *ngIf="(idUsuario$ | async) === respuesta.usuario.id && this.urlImagen" alt="" class="rounded-circle" [ngSrc]=urlImagen width="50" height="50">
+        <img *ngIf="(idUsuario$ | async) !== respuesta.usuario.id || (idUsuario$ | async) === respuesta.usuario.id && !this.urlImagen" alt="" class="rounded-circle" [ngSrc]="'http://localhost:3000/profile_images/' + respuesta.usuario.id + '.jpg'" width="50" height="50">
       </div>
       <div class="col">
         <div class="d-flex w-100 justify-content-between">
