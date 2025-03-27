@@ -10,6 +10,7 @@ import {MensajeService} from '../../services/mensaje.service';
 import {Usuario} from '../../models/usuario.model';
 import {format} from 'date-fns';
 import {UsuarioService} from '../../services/usuario.service';
+import {PickerModule} from '@ctrl/ngx-emoji-mart';
 
 @Component({
   selector: 'app-inicio',
@@ -20,7 +21,8 @@ import {UsuarioService} from '../../services/usuario.service';
     NgForOf,
     NgOptimizedImage,
     NgClass,
-    NgIf
+    NgIf,
+    PickerModule
   ],
   templateUrl: './inicio.component.html',
   styleUrl: './inicio.component.scss'
@@ -32,6 +34,7 @@ export class InicioComponent implements OnInit {
   mensajes$!: Observable<Mensaje[] | null>;
   formularioPublicarMensaje: FormGroup;
   urlImagen: string = '';
+  abrirSelectorEmojis: boolean = false;
 
   constructor(private router: Router, private authService: AuthService, private mensajeService: MensajeService, private usuarioService: UsuarioService) {
     this.authToken$ = this.authService.authToken$;
@@ -118,4 +121,15 @@ export class InicioComponent implements OnInit {
     this.router.navigate(['mensaje/detalle'], { state: { data: mensaje } });
   }
 
+  seleccionarEmoji(event: any) {
+    this.formularioPublicarMensaje.get('texto')?.setValue(this.formularioPublicarMensaje.get('texto')?.value + event.emoji.native);
+  }
+
+  abrirSelector() {
+    if (!this.abrirSelectorEmojis) {
+      this.abrirSelectorEmojis = true;
+    } else {
+      this.abrirSelectorEmojis = false;
+    }
+  }
 }
