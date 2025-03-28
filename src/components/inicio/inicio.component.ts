@@ -122,7 +122,11 @@ export class InicioComponent implements OnInit {
   }
 
   seleccionarEmoji(event: any) {
-    this.formularioPublicarMensaje.get('texto')?.setValue(this.formularioPublicarMensaje.get('texto')?.value + event.emoji.native);
+    if(this.formularioPublicarMensaje.get('texto')?.value) {
+      this.formularioPublicarMensaje.get('texto')?.setValue(this.formularioPublicarMensaje.get('texto')?.value + event.emoji.native);
+    } else {
+      this.formularioPublicarMensaje.get('texto')?.setValue(event.emoji.native);
+    }
   }
 
   abrirSelector() {

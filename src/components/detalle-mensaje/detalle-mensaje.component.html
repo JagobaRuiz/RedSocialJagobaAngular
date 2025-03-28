@@ -56,6 +56,8 @@
   </div>
   <p class="mb-1">
     <textarea id="texto" formControlName="texto" class="form-control"></textarea>
+    <button type="button" class="boton-emojis" (click)="abrirSelector()">😀</button>
+    <emoji-mart *ngIf="abrirSelectorEmojis" [style]="{ position: 'absolute'}" [enableSearch]="true" [enableFrequentEmojiSort]="true" (emojiSelect)="seleccionarEmoji($event)" [title]="'JagobaX'" [i18n]="{ search: 'Buscar', emojilist: 'Lista de emojis', notfound: 'No se ha encontrado ningún emoji', clear: 'Limpiar', categories: { search: 'Resultados de la busqueda', recent: 'Recientes', people: 'Caras y personas', nature: 'Naturaleza', foods: 'Comida y bebida', activity: 'Deportes y actividades', places: 'Viajes y lugares', objects: 'Objetos', symbols: 'Símbolos', flags: 'Banderas', custom: 'Personalizados' }, skintones: {'1': 'Por defecto', '2':'Piel clara', '3': 'Piel medio clara', '4': 'Piel intermedia', '5': 'Piel medio oscura', '6': 'Piel oscura'}}"></emoji-mart>
   </p>
   <small>
     <button class="btn btn-primary">Responder</button>

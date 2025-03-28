@@ -10,6 +10,7 @@ import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} fr
 import {Usuario} from '../../models/usuario.model';
 import {format} from 'date-fns';
 import {UsuarioService} from '../../services/usuario.service';
+import {PickerModule} from '@ctrl/ngx-emoji-mart';
 
 
 @Component({
@@ -21,7 +22,8 @@ import {UsuarioService} from '../../services/usuario.service';
     FormsModule,
     ReactiveFormsModule,
     NgForOf,
-    NgClass
+    NgClass,
+    PickerModule
   ],
   templateUrl: './detalle-mensaje.component.html',
   styleUrl: './detalle-mensaje.component.scss'
@@ -34,6 +36,7 @@ export class DetalleMensajeComponent implements OnInit {
   formularioResponder: FormGroup;
   respuestas$: Observable<Mensaje[] | null>;
   urlImagen: string = '';
+  abrirSelectorEmojis: boolean = false;
 
   constructor(private router: Router, private authService: AuthService, private mensajeService: MensajeService, private usuarioService: UsuarioService) {
     const navigation = this.router.getCurrentNavigation();
@@ -144,7 +147,21 @@ export class DetalleMensajeComponent implements OnInit {
     return leHaDadoLike;
   }
 
+  seleccionarEmoji(event: any) {
+    if(this.formularioResponder.get('texto')?.value) {
+      this.formularioResponder.get('texto')?.setValue(this.formularioResponder.get('texto')?.value + event.emoji.native);
+    } else {
+      this.formularioResponder.get('texto')?.setValue(event.emoji.native);
+    }
+  }
 
+  abrirSelector() {
+    if (!this.abrirSelectorEmojis) {
+      this.abrirSelectorEmojis = true;
+    } else {
+      this.abrirSelectorEmojis = false;
+    }
+  }
 
 }
 
