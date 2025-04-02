@@ -35,6 +35,10 @@ export class InicioComponent implements OnInit {
   formularioPublicarMensaje: FormGroup;
   urlImagen: string = '';
   abrirSelectorEmojis: boolean = false;
+  urlVistaPrevia!: string [] | null;
+  adjuntoSelecciondo: File[] | null = null;
+  tamanoMaximoMultimedia = 5 * 1024 * 1024; // 5 MB
+  botonEnviarDeshabilitado: boolean = true;
 
   constructor(private router: Router, private authService: AuthService, private mensajeService: MensajeService, private usuarioService: UsuarioService) {
     this.authToken$ = this.authService.authToken$;
@@ -47,7 +51,8 @@ export class InicioComponent implements OnInit {
     );
 
     this.formularioPublicarMensaje = new FormGroup({
-      texto: new FormControl(null, [Validators.required])
+      texto: new FormControl(null, [Validators.required, Validators.pattern(/^(?!\s*$).+/)]),
+      multimedia: new FormControl (null)
     })
   }
 
@@ -68,9 +73,23 @@ export class InicioComponent implements OnInit {
       idUsuario = id;
     });
 
+    const formData = new FormData();
+    formData.append('texto', this.formularioPublicarMensaje.get('texto')?.value); // Agregar texto
+    // formData.append('idUsuario', idUsuario);
+    const files = this.adjuntoSelecciondo;
+    files?.forEach((file: File) => {
+      console.log('file', file);
+      formData.append('multimedia', file, file.name); // Agregar cada archivo
+    });
+
     if (idUsuario) {
-      this.mensajeService.publicarMensaje(this.formularioPublicarMensaje.get('texto')?.value, idUsuario).subscribe({
-        next: (mensaje: Mensaje) => {},
+      this.mensajeService.publicarMensaje(this.formularioPublicarMensaje.get('texto')?.value, idUsuario, this.adjuntoSelecciondo).subscribe({
+        next: (mensaje: Mensaje) => {
+          this.formularioPublicarMensaje.get('texto')?.setValue(null);
+          this.formularioPublicarMensaje.get('multimedia')?.setValue(null);
+          this.urlVistaPrevia = null;
+          this.adjuntoSelecciondo = null;
+        },
         error: (error) => {}
       });
     }
@@ -135,5 +154,71 @@ export class InicioComponent implements OnInit {
     } else {
       this.abrirSelectorEmojis = false;
     }
+  }
+
+  gestionarArchivoSeleccionado(event: Event) {
+    const input = event.target as HTMLInputElement;
+    console.log(input);
+    if (input.files) {
+      const files = Array.from(input.files); // Convierte FileList a Array<File>
+      console.log(files);
+
+      // Almacena los archivos en una propiedad separada (no en el input directamente)
+      this.adjuntoSelecciondo = files; // Una nueva propiedad para manejar los archivos
+
+      // Valida el tamaño de los archivos seleccionados
+      const archivosInvalidos = files.filter((file: File) => file.size > this.tamanoMaximoMultimedia);
+      if (archivosInvalidos.length > 0) {
+        this.formularioPublicarMensaje.get('multimedia')?.setErrors({ maxSizeExceeded: true });
+      } else {
+        this.formularioPublicarMensaje.get('multimedia')?.setErrors(null);
+      }
+      this.gestionarBotonPublicarMensaje();
+
+      // Crear vistas previas si es necesario
+      this.urlVistaPrevia = [];
+
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.urlVistaPrevia?.push(e.target.result); // Añadir la URL de vista previa al array
+          console.log(this.urlVistaPrevia); // Mostrar las vistas previas mientras se generan
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+
+  // Validar si el archivo es una imagen
+  vistaPreviaEsImagen(url: string): boolean {
+    return url.startsWith('data:image/');
+  }
+
+  // Validar si el archivo es un video
+  vistaPreviaIsVideo(url: string): boolean {
+    return url.startsWith('data:video/');
+  }
+
+  esImagen(url: string): boolean {
+    return url.match(/\.(jpeg|jpg|png|gif)$/i) !== null;
+  }
+
+  // Validar si la URL es un video
+  esVideo(url: string): boolean {
+    return url.match(/\.(mp4)$/i) !== null;
+  }
+
+  gestionarBotonPublicarMensaje() {
+    if (this.formularioPublicarMensaje.get('texto')?.errors || this.formularioPublicarMensaje.get('multimedia')?.errors) {
+      this.botonEnviarDeshabilitado = true;
+    } else {
+      this.botonEnviarDeshabilitado = false;
+    }
+  }
+
+  eliminarFicheroSeleccionado(index: number): void {
+    this.adjuntoSelecciondo?.splice(index, 1);
+    this.urlVistaPrevia?.splice(index, 1);
+    // console.log('Archivos restantes:', this.selectedFiles);
   }
 }

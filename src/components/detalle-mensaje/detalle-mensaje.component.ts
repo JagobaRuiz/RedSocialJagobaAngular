@@ -37,6 +37,10 @@ export class DetalleMensajeComponent implements OnInit {
   respuestas$: Observable<Mensaje[] | null>;
   urlImagen: string = '';
   abrirSelectorEmojis: boolean = false;
+  adjuntoSeleccionado: File[] | null = null;
+  tamanoMaximoMultimedia = 5 * 1024 * 1024; // 5 MB
+  botonEnviarDeshabilitado: boolean = true;
+  urlVistaPrevia!: string [] | null;
 
   constructor(private router: Router, private authService: AuthService, private mensajeService: MensajeService, private usuarioService: UsuarioService) {
     const navigation = this.router.getCurrentNavigation();
@@ -51,7 +55,8 @@ export class DetalleMensajeComponent implements OnInit {
       map(token => token ? this.authService.obtenerIdUsuarioDeToken(token) : null)
     );
     this.formularioResponder = new FormGroup({
-      texto: new FormControl('', [Validators.required])
+      texto: new FormControl(null, [Validators.required, Validators.pattern(/^(?!\s*$).+/)]),
+      multimedia: new FormControl(null),
     });
   }
 
@@ -73,9 +78,13 @@ export class DetalleMensajeComponent implements OnInit {
     });
 
     if (idUsuario) {
-      this.mensajeService.publicarMensaje(this.formularioResponder.get('texto')?.value, idUsuario, this.mensaje.id).subscribe({
+      this.mensajeService.publicarMensaje(this.formularioResponder.get('texto')?.value, idUsuario, this.adjuntoSeleccionado, this.mensaje.id).subscribe({
         next: (mensaje: Mensaje) => {
           this.mensajeService.cargarRespuestas(this.mensaje.id);
+          this.formularioResponder.get('texto')?.setValue(null);
+          this.formularioResponder.get('multimedia')?.setValue(null);
+          this.urlVistaPrevia = null;
+          this.adjuntoSeleccionado = null;
         },
         error: (error) => {}
       });
@@ -111,28 +120,7 @@ export class DetalleMensajeComponent implements OnInit {
   }
 
   gestionarLike(mensaje: Mensaje) {
-    let idUsuario: number | null = null;
-    let leHaDadoLike: boolean = false;
-    this.idUsuario$.subscribe(id => {
-      idUsuario = id;
-    });
-    if (idUsuario) {
-      mensaje.lesGusta?.forEach((like: Usuario) => {
-        if (like.id === idUsuario) {
-          leHaDadoLike = true;
-        }
-      });
-
-      if (!leHaDadoLike) {
-        this.mensajeService.darLike(idUsuario, mensaje.id).subscribe({
-          next: (like) => {}
-        })
-      } else {
-        this.mensajeService.quitarLike(idUsuario, mensaje.id).subscribe({
-          next: (like) => {}
-        })
-      }
-    }
+    this.mensajeService.gestionarLike(this.mensaje, this.idUsuario$, true);
   }
 
   leHaDadoLikeElUsuarioLogueado(likesDelMensaje: Usuario[] | null) {
@@ -162,6 +150,72 @@ export class DetalleMensajeComponent implements OnInit {
       this.abrirSelectorEmojis = false;
     }
   }
+
+  gestionarArchivoSeleccionado(event: Event) {
+    const input = event.target as HTMLInputElement;
+    console.log(input);
+    if (input.files) {
+      const files = Array.from(input.files); // Convierte FileList a Array<File>
+      console.log(files);
+
+      // Almacena los archivos en una propiedad separada (no en el input directamente)
+      this.adjuntoSeleccionado = files; // Una nueva propiedad para manejar los archivos
+
+      // Valida el tamaño de los archivos seleccionados
+      const archivosInvalidos = files.filter((file: File) => file.size > this.tamanoMaximoMultimedia);
+      if (archivosInvalidos.length > 0) {
+        this.formularioResponder.get('multimedia')?.setErrors({ maxSizeExceeded: true });
+      } else {
+        this.formularioResponder.get('multimedia')?.setErrors(null);
+      }
+      this.gestionarBotonResponder();
+
+      // Crear vistas previas si es necesario
+      this.urlVistaPrevia = [];
+
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.urlVistaPrevia?.push(e.target.result); // Añadir la URL de vista previa al array
+          console.log(this.urlVistaPrevia); // Mostrar las vistas previas mientras se generan
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+
+  vistaPreviaEsImagen(url: string): boolean {
+    return url.startsWith('data:image/');
+  }
+
+  // Validar si el archivo es un video
+  vistaPreviaIsVideo(url: string): boolean {
+    return url.startsWith('data:video/');
+  }
+
+  esImagen(url: string): boolean {
+    return url.match(/\.(jpeg|jpg|png|gif)$/i) !== null;
+  }
+
+  // Validar si la URL es un video
+  esVideo(url: string): boolean {
+    return url.match(/\.(mp4)$/i) !== null;
+  }
+
+  gestionarBotonResponder() {
+    if (this.formularioResponder.get('texto')?.errors || this.formularioResponder.get('multimedia')?.errors) {
+      this.botonEnviarDeshabilitado = true;
+    } else {
+      this.botonEnviarDeshabilitado = false;
+    }
+  }
+
+  eliminarFicheroSeleccionado(index: number): void {
+    this.adjuntoSeleccionado?.splice(index, 1);
+    this.urlVistaPrevia?.splice(index, 1);
+    // console.log('Archivos restantes:', this.selectedFiles);
+  }
+
 
 }
 

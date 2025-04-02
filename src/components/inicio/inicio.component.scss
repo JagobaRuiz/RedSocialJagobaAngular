@@ -28,7 +28,15 @@ h1{
   color: red;
 }
 
-.boton-emojis {
+.boton-emojis, .boton-multimedia, .quitar-multimedia {
   border: none;
   background-color: transparent;
+}
+
+.columnas {
+  width: 14em;
+}
+
+label {
+  cursor: pointer;
 }

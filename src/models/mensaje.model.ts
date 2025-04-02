@@ -8,5 +8,5 @@ export interface Mensaje {
   fecha: Date;
   respuestaDe?: Mensaje;
   respuestas?: Array<Mensaje>;
-
+  multimedia?: Array<string>;
 }

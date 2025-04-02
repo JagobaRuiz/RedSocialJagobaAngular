@@ -14,6 +14,12 @@
             <small>{{ obtenerTiempoVida(mensaje.fecha) }}</small>
         </div>
         <p class="mb-1">{{ mensaje.texto }}</p>
+        <div *ngIf="mensaje.multimedia" class="row row-cols-3 g-1">
+          <div *ngFor="let multimediaUrl of mensaje.multimedia" class="col columnas">
+            <img *ngIf="esImagen(multimediaUrl)" [src]="'http://localhost:3000' + multimediaUrl" alt="Imagen adjunta" width="75%" height="150">
+            <video *ngIf="esVideo(multimediaUrl)" [src]="'http://localhost:3000' + multimediaUrl" controls width="300"></video>
+          </div>
+        </div>
         <small>
           <a><i class="bi bi-chat"></i>{{ " " + mensaje.respuestas?.length }}</a>
           <a (click)="gestionarLike(mensaje)"><i
@@ -38,6 +44,15 @@
           <small>{{ obtenerTiempoVida(respuesta.fecha) }}</small>
         </div>
         <p class="mb-1"> {{ respuesta.texto }}</p>
+        <div *ngIf="respuesta.multimedia" class="row row-cols-3 g-1">
+          <div *ngFor="let multimediaUrl of respuesta.multimedia" class="col columnas">
+            <!-- Mostrar imágenes -->
+            <img *ngIf="esImagen(multimediaUrl)" [src]="'http://localhost:3000' + multimediaUrl" alt="Imagen adjunta" width="75%" height="150">
+
+            <!-- Mostrar videos -->
+            <video *ngIf="esVideo(multimediaUrl)" [src]="'http://localhost:3000' + multimediaUrl" controls width="300"></video>
+          </div>
+        </div>
         <small>
           <a (click)="irDetalle(respuesta)"><i class="bi bi-chat"></i>{{ " " + respuesta.respuestas?.length }}</a>
                     <a (click)="gestionarLike(respuesta)"><i
@@ -55,11 +70,25 @@
     <h5 class="mb-1">{{ '@' + (username$ |async) }}</h5>
   </div>
   <p class="mb-1">
-    <textarea id="texto" formControlName="texto" class="form-control"></textarea>
+    <textarea id="texto" formControlName="texto" class="form-control" (keyup)="gestionarBotonResponder()"></textarea>
     <button type="button" class="boton-emojis" (click)="abrirSelector()">😀</button>
+    <label for="multimedia" class="upload-button"><i class="bi bi-paperclip"></i></label>
+    <input type="file" id="multimedia" name="multimedia" [hidden]="true" formControlName="multimedia" class="form-control" accept="image/jpeg, image/jpg, image/png, image/gif, video/mp4" (change)="gestionarArchivoSeleccionado($event)" multiple>
     <emoji-mart *ngIf="abrirSelectorEmojis" [style]="{ position: 'absolute'}" [enableSearch]="true" [enableFrequentEmojiSort]="true" (emojiSelect)="seleccionarEmoji($event)" [title]="'JagobaX'" [i18n]="{ search: 'Buscar', emojilist: 'Lista de emojis', notfound: 'No se ha encontrado ningún emoji', clear: 'Limpiar', categories: { search: 'Resultados de la busqueda', recent: 'Recientes', people: 'Caras y personas', nature: 'Naturaleza', foods: 'Comida y bebida', activity: 'Deportes y actividades', places: 'Viajes y lugares', objects: 'Objetos', symbols: 'Símbolos', flags: 'Banderas', custom: 'Personalizados' }, skintones: {'1': 'Por defecto', '2':'Piel clara', '3': 'Piel medio clara', '4': 'Piel intermedia', '5': 'Piel medio oscura', '6': 'Piel oscura'}}"></emoji-mart>
   </p>
+  <div *ngIf="formularioResponder.get('multimedia')?.invalid && formularioResponder.get('multimedia')?.touched">
+    <small style="color: red;">Archivo no válido o con tamaño superior a 5MB</small>
+  </div>
   <small>
-    <button class="btn btn-primary">Responder</button>
+    <button class="btn btn-primary" [disabled]="botonEnviarDeshabilitado">Responder</button>
   </small>
+  <div class="mb-1"></div>
+  <div *ngIf="urlVistaPrevia && urlVistaPrevia?.length && urlVistaPrevia.length > 0" class="row row-cols-3 g-1">
+    <h4>Archivos seleccionados:</h4>
+    <div *ngFor="let vistaPrevia of urlVistaPrevia; let i = index" class="col columnas">
+      <img *ngIf="vistaPreviaEsImagen(vistaPrevia)" [src]="vistaPrevia" alt="Vista previa" width="100" height="100">
+      <video *ngIf="vistaPreviaIsVideo(vistaPrevia)" [src]="vistaPrevia" controls width="200"></video>
+      <button type="button" (click)="eliminarFicheroSeleccionado(i)">X</button>
+    </div>
+  </div>
 </form>

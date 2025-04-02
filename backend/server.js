@@ -10,16 +10,19 @@ const multer = require('multer');
 const bcrypt = require('bcrypt')
 require('dotenv').config();
 const verificarToken = require('./middlewareAutenticacion');
+const {files} = require("jasmine-core");
 
 
 const app = express();
 const port = 3000;
-const secretKey = 'JagobaX1234';
 
 app.use(bodyParser.json());
 app.use(cors());
-// Servir archivos desde la carpeta 'uploads/profile_images'
+// Servir archivos desde la carpeta '/profile_images'
 app.use('/profile_images', express.static(join(__dirname, '/profile_images')));
+
+// Servir archivos desde la carpeta '/uploads'
+app.use('/uploads', express.static(join(__dirname, '/uploads')));
 
 // Conexión a la base de datos SQLite
 const db = new sqlite3.Database('../bdd.db', sqlite3.OPEN_READWRITE, (err) => {
@@ -92,7 +95,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
 
 
 
@@ -237,6 +239,38 @@ app.post('/login_username', (req, res) => {
 
 // RUTAS PARA MENSAJES
 
+// Configuración para subir imágenes, gifs y videos
+const multimediaStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, join(__dirname, '/uploads')); // Carpeta donde se guardarán los archivos
+  },
+  filename: (req, file, cb) => {
+    // Crear un nombre único para cada archivo
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `${uniqueSuffix}-${file.originalname}`);
+  }
+});
+
+// Configuración de validaciones
+const fileFilter = (req, file, cb) => {
+  const fileTypes = /jpeg|jpg|png|gif|mp4/; // Tipos permitidos
+  const extname = fileTypes.test(file.originalname.toLowerCase());
+  const mimetype = fileTypes.test(file.mimetype);
+
+  if (extname && mimetype) {
+    cb(null, true); // Aceptar archivo
+  } else {
+    cb(new Error('Tipo de archivo no válido')); // Rechazar archivo
+  }
+};
+
+// Configuración de Multer con límite de tamaño
+const multimediaUpload = multer({
+  storage: multimediaStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // Tamaño máximo: 10 MB
+  fileFilter: fileFilter
+});
+
 
 
 //Obtener mensajes con toda la información
@@ -256,6 +290,7 @@ const obtenerMensajes = (mensajeId, callback) => {
       u.nombre AS usuario_nombre,
       u.username AS usuario_username,
       u.email AS usuario_email,
+      mm.url AS multimedia_urls,
       r.id AS respuesta_mensaje_id,
       r.texto AS respuesta_mensaje_texto,
       r.fecha AS respuesta_mensaje_fecha,
@@ -273,6 +308,7 @@ const obtenerMensajes = (mensajeId, callback) => {
       ulr.email AS like_respuesta_usuario_email
     FROM Mensajes m
     JOIN Usuarios u ON m.id_usuario = u.id
+    LEFT JOIN Multimedia mm ON mm.id_mensaje = m.id
     LEFT JOIN Mensajes r ON m.id_respuesta = r.id
     LEFT JOIN Usuarios ru ON r.id_usuario = ru.id
     LEFT JOIN Likes lm ON lm.id_mensaje = m.id
@@ -290,6 +326,7 @@ const obtenerMensajes = (mensajeId, callback) => {
 
     const mensajesMap = new Map();
     const likesMap = new Map();
+    const multimediaMap = new Map();
 
     rows.forEach(row => {
       if (!mensajesMap.has(row.mensaje_id)) {
@@ -303,6 +340,7 @@ const obtenerMensajes = (mensajeId, callback) => {
             username: row.usuario_username,
             email: row.usuario_email
           },
+          multimedia: row.multimedia_urls ? row.multimedia_urls.split(',') : [],
           respuestaDe: row.respuesta_de_id ? {
             id: row.respuesta_mensaje_id,
             texto: row.respuesta_mensaje_texto,
@@ -331,6 +369,12 @@ const obtenerMensajes = (mensajeId, callback) => {
           username: row.like_mensaje_usuario_username,
           email: row.like_mensaje_usuario_email
         });
+      }
+
+      if (row.multimedia_urls) {
+        if (!multimediaMap.has(row.mensaje_id)) {
+          multimediaMap.set(row.mensaje_id, row.multimedia_urls.split(','));
+        }
       }
 
       if (row.like_respuesta_usuario_id) {
@@ -393,6 +437,7 @@ const obtenerTodosMensajes = (callback) => {
            u.nombre       AS usuario_nombre,
            u.username     AS usuario_username,
            u.email        AS usuario_email,
+           GROUP_CONCAT(mm.url) AS multimedia_urls,
            r.id           AS respuesta_mensaje_id,
            r.texto        AS respuesta_mensaje_texto,
            r.fecha        AS respuesta_mensaje_fecha,
@@ -410,12 +455,15 @@ const obtenerTodosMensajes = (callback) => {
            ulr.email      AS like_respuesta_usuario_email
     FROM Mensajes m
            JOIN Usuarios u ON m.id_usuario = u.id
+           LEFT JOIN Multimedia mm ON mm.id_mensaje = m.id
            LEFT JOIN Mensajes r ON m.id_respuesta = r.id
            LEFT JOIN Usuarios ru ON r.id_usuario = ru.id
            LEFT JOIN Likes lm ON lm.id_mensaje = m.id
            LEFT JOIN Usuarios ulm ON lm.id_usuario = ulm.id
            LEFT JOIN Likes lr ON lr.id_mensaje = r.id
-           LEFT JOIN Usuarios ulr ON lr.id_usuario = ulr.id ORDER BY m.fecha DESC;
+           LEFT JOIN Usuarios ulr ON lr.id_usuario = ulr.id
+          GROUP BY m.id
+          ORDER BY m.fecha DESC;
   `;
 
   db.all(sql, [], (err, rows) => {
@@ -425,6 +473,8 @@ const obtenerTodosMensajes = (callback) => {
 
     const mensajesMap = new Map();
     const likesMap = new Map();
+    const multimediaMap = new Map();
+
 
     rows.forEach(row => {
       if (!mensajesMap.has(row.mensaje_id)) {
@@ -438,6 +488,7 @@ const obtenerTodosMensajes = (callback) => {
             username: row.usuario_username,
             email: row.usuario_email
           },
+          multimedia: row.multimedia_urls ? row.multimedia_urls.split(',') : [],
           respuestaDe: row.respuesta_de_id ? {
             id: row.respuesta_mensaje_id,
             texto: row.respuesta_mensaje_texto,
@@ -466,6 +517,12 @@ const obtenerTodosMensajes = (callback) => {
           username: row.like_mensaje_usuario_username,
           email: row.like_mensaje_usuario_email
         });
+      }
+
+      if (row.multimedia_urls) {
+        if (!multimediaMap.has(row.mensaje_id)) {
+          multimediaMap.set(row.mensaje_id, row.multimedia_urls.split(','));
+        }
       }
 
       if (row.like_respuesta_usuario_id) {
@@ -541,6 +598,7 @@ const obtenerRespuestas = (mensajeId, callback) => {
       ur.nombre AS respuesta_usuario_nombre,
       ur.username AS respuesta_usuario_username,
       ur.email AS respuesta_usuario_email,
+      GROUP_CONCAT(mm.url) AS multimedia_urls,
       m.id AS mensaje_id,
       m.texto AS mensaje_texto,
       m.fecha AS mensaje_fecha,
@@ -559,12 +617,13 @@ const obtenerRespuestas = (mensajeId, callback) => {
     FROM Mensajes r
     JOIN Usuarios ur ON r.id_usuario = ur.id
     LEFT JOIN Mensajes m ON r.id_respuesta = m.id
+    LEFT JOIN Multimedia mm ON mm.id_mensaje = r.id
     LEFT JOIN Usuarios um ON m.id_usuario = um.id
     LEFT JOIN Likes lr ON lr.id_mensaje = r.id
     LEFT JOIN Usuarios ulr ON lr.id_usuario = ulr.id
     LEFT JOIN Likes lm ON lm.id_mensaje = m.id
     LEFT JOIN Usuarios ulm ON lm.id_usuario = ulm.id
-    WHERE r.id_respuesta = ? ORDER BY r.fecha DESC;
+    WHERE r.id_respuesta = ? GROUP BY r.id ORDER BY r.fecha DESC;
   `;
   const params = [mensajeId];
 
@@ -575,6 +634,7 @@ const obtenerRespuestas = (mensajeId, callback) => {
 
     const respuestaMap = new Map();
     const mensajeLikesMap = new Map();
+    const multimediaMap = new Map();
 
     rows.forEach(row => {
       if (!respuestaMap.has(row.respuesta_id)) {
@@ -588,6 +648,7 @@ const obtenerRespuestas = (mensajeId, callback) => {
             username: row.respuesta_usuario_username,
             email: row.respuesta_usuario_email
           },
+          multimedia: row.multimedia_urls ? row.multimedia_urls.split(',') : [],
           respuestaDe: row.mensaje_id ? {
             id: row.mensaje_id,
             texto: row.mensaje_texto,
@@ -613,6 +674,12 @@ const obtenerRespuestas = (mensajeId, callback) => {
           username: row.like_respuesta_usuario_username,
           email: row.like_respuesta_usuario_email
         });
+      }
+
+      if (row.multimedia_urls) {
+        if (!multimediaMap.has(row.mensaje_id)) {
+          multimediaMap.set(row.mensaje_id, row.multimedia_urls.split(','));
+        }
       }
 
       if (row.mensaje_id && row.like_mensaje_usuario_id) {
@@ -674,11 +741,16 @@ app.get('/mensajes/:id/respuestas', (req, res) => {
 
 
 // Ruta para crear un Mensaje
-app.post('/mensajes', verificarToken, (req, res) => {
-  const { texto, idUsuario, idRespuesta } = req.body;
+app.post('/mensajes', verificarToken, multimediaUpload.array('multimedia', 5), (req, res) => {
+  const {idUsuario, idRespuesta, texto } = req.body;
+  // const texto = req.body.texto;
+  console.log('Texto: ', req.files);
+  console.log('Content-Type:', req.headers['content-type']);
+  const multimedia = req.files;
   const fecha = moment().tz('Europe/Madrid').format('YYYY-MM-DD HH:mm:ss');
   const insertSql = `INSERT INTO Mensajes (texto, id_usuario, fecha, id_respuesta) VALUES (?, ?, ?, ?)`;
   const insertParams = [texto, idUsuario, fecha, idRespuesta || null];
+  const filePaths = multimedia.map(file => `/uploads/${file.filename}`);
 
   db.run(insertSql, insertParams, function (err) {
     if (err) {
@@ -686,6 +758,18 @@ app.post('/mensajes', verificarToken, (req, res) => {
     }
 
     const mensajeId = this.lastID;
+
+    const insertMultimediaQuery = `INSERT INTO Multimedia (id_mensaje, url) VALUES (?, ?)`;
+    const multimediaInserts = multimedia.map(file => {
+      return new Promise((resolve, reject) => {
+        const filePath = `/uploads/${file.filename}`;
+        db.run(insertMultimediaQuery, [mensajeId, filePath], (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    });
+
     const selectSql = `
       SELECT
         m.id, m.texto, m.fecha, m.id_respuesta,
@@ -711,11 +795,19 @@ app.post('/mensajes', verificarToken, (req, res) => {
           username: row.usuario_username,
           email: row.usuario_email
         },
+        multimedia: filePaths,
         respuestas: [],
         lesGusta: []
       };
 
-      res.json(mensajeCompleto);
+      Promise.all(multimediaInserts)
+        .then(() => {
+          res.json(mensajeCompleto);
+        })
+        .catch(err => {
+          console.error('Error al guardar multimedia:', err);
+          res.status(500).json({ error: 'Error interno al guardar multimedia' });
+        });
     });
   });
 });

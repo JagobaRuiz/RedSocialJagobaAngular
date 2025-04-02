@@ -46,12 +46,24 @@ export class MensajeService {
     return this.respuestas$;
   }
 
-  publicarMensaje(texto: string, idUsuario: number, idRespuesta?: number): Observable<Mensaje> {
+  publicarMensaje(texto: string,  idUsuario: number, multimedia: File[] | null, idRespuesta?: number): Observable<Mensaje> {
     let headers = new HttpHeaders({
       'Authorization' : 'Bearer '+ localStorage.getItem('authToken')
     });
+    let formData = new FormData();
+    formData.append('texto', texto);
+    formData.append('idUsuario', idUsuario.toString());
+    if (idRespuesta) {
+      formData.append('idRespuesta', idRespuesta.toString());
+    }
+    if (multimedia) {
+      multimedia.forEach((file, index) => {
+        formData.append('multimedia', file);
+      });
+    }
+    // console.log("Mensaje: ", multimedia?.get('multimedia'));
 
-    return this.http.post<Mensaje>(this.apiUrl, {texto, idUsuario, idRespuesta}, {headers: headers}).pipe(
+    return this.http.post<Mensaje>(this.apiUrl, formData, {headers: headers}).pipe(
       tap(response => {
         const mensajesActuales = this.mensajesSubject.value
         if (mensajesActuales) {
@@ -130,7 +142,7 @@ export class MensajeService {
   }
 
 
-  gestionarLike(mensaje: Mensaje, idUsuario$: Observable<number | null>) {
+  gestionarLike(mensaje: Mensaje, idUsuario$: Observable<number | null>, vieneDeRespuesta?: boolean) {
     let idUsuario: number | null = null;
     let leHaDadoLike: boolean = false;
     idUsuario$.subscribe(id => {
@@ -144,17 +156,16 @@ export class MensajeService {
       });
 
       if (!leHaDadoLike) {
-        this.darLike(idUsuario, mensaje.id).subscribe({
+        this.darLike(idUsuario, mensaje.id, vieneDeRespuesta).subscribe({
           next: (like) => {
           }
         })
       } else {
-        this.quitarLike(idUsuario, mensaje.id).subscribe({
+        this.quitarLike(idUsuario, mensaje.id, vieneDeRespuesta).subscribe({
           next: (like) => {
           }
         })
       }
-
     }
   }
 
